@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import CustomerOverview from './CustomerOverview';
 import Marketplace from './Marketplace';
@@ -14,11 +13,12 @@ import ReviewsAndRatings from './ReviewsAndRatings';
 import ComplaintsAndHelp from './ComplaintsAndHelp';
 import PromoLoyaltyHub from './PromoLoyaltyHub';
 import Notifications from './Notifications';
+import SmartHub from './SmartHub';
 import CartService from '../../services/CartService';
 import { ICONS } from '../../constants';
 
 interface CustomerDashboardProps {
-  activeTab: 'overview' | 'repairs' | 'orders' | 'profile' | 'marketplace' | 'cart' | 'checkout' | 'payments' | 'new-service' | 'warranty' | 'reviews' | 'help' | 'promo' | 'notifications';
+  activeTab: 'overview' | 'repairs' | 'orders' | 'profile' | 'marketplace' | 'cart' | 'checkout' | 'payments' | 'new-service' | 'warranty' | 'reviews' | 'help' | 'promo' | 'notifications' | 'smart';
 }
 
 const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ activeTab }) => {
@@ -41,6 +41,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ activeTab }) => {
   const renderContent = () => {
     switch (currentView) {
       case 'overview': return <CustomerOverview />;
+      case 'smart': return <SmartHub onNavigate={(path: any) => setCurrentView(path)} />;
       case 'repairs': return <RepairsTracker />;
       case 'warranty': return <WarrantyCenter />;
       case 'reviews': return <ReviewsAndRatings />;
@@ -61,6 +62,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ activeTab }) => {
   const getTitle = () => {
     switch (currentView) {
       case 'overview': return 'Home Node';
+      case 'smart': return 'Neural Intelligence Hub';
       case 'marketplace': return 'Sumatra Marketplace';
       case 'cart': return 'Keranjang Saya';
       case 'checkout': return 'Secure Checkout';
@@ -89,6 +91,12 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ activeTab }) => {
         </div>
         
         <div className="flex gap-3">
+           <button 
+             onClick={() => setCurrentView('smart')}
+             className={`p-3 border rounded-2xl transition-all relative ${currentView === 'smart' ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-600/30' : 'bg-slate-900 border-slate-800 text-indigo-400 hover:text-white'}`}
+           >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeWidth={2}/></svg>
+           </button>
            <button 
              onClick={() => setCurrentView('cart')}
              className={`p-3 border rounded-2xl transition-all relative ${currentView === 'cart' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-white'}`}

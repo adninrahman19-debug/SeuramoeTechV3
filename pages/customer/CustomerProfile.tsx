@@ -2,25 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import AuthService from '../../auth/AuthService';
 import ProfileService from '../../services/ProfileService';
-import { Address, PaymentMethod, LoginSession, User } from '../../types';
+import { Address, PaymentMethod, LoginSession, PrivacySettings } from '../../types';
 import { ICONS } from '../../constants';
 
 const CustomerProfile: React.FC = () => {
   const user = AuthService.getCurrentUser();
-  const [activeTab, setActiveTab] = useState<'account' | 'addresses' | 'payments' | 'security'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'addresses' | 'payments' | 'security' | 'privacy'>('account');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [payments, setPayments] = useState<PaymentMethod[]>([]);
   const [sessions, setSessions] = useState<LoginSession[]>([]);
+  const [privacy, setPrivacy] = useState<PrivacySettings | null>(null);
 
   // Account Form
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '081233334444');
 
+  // Deletion Reason
+  const [deleteReason, setDeleteReason] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   useEffect(() => {
     setAddresses(ProfileService.getAddresses());
     setPayments(ProfileService.getPaymentMethods());
     setSessions(ProfileService.getLoginSessions());
+    setPrivacy(ProfileService.getPrivacySettings());
   }, []);
 
   if (!user) return null;
@@ -36,6 +42,27 @@ const CustomerProfile: React.FC = () => {
       setSessions(ProfileService.getLoginSessions());
       alert("Sesi di perangkat lain telah dihentikan.");
     }
+  };
+
+  const handleTogglePrivacy = (key: keyof PrivacySettings) => {
+    if (privacy) {
+      const updated = { ...privacy, [key]: !privacy[key] };
+      setPrivacy(updated);
+      ProfileService.savePrivacySettings(updated);
+    }
+  };
+
+  const handleDownloadData = () => {
+    if (confirm("Unduh seluruh data pribadi Anda dalam format JSON?")) {
+      ProfileService.exportPersonalData();
+    }
+  };
+
+  const handleDeleteRequest = () => {
+    if (!deleteReason) return alert("Mohon berikan alasan penghapusan.");
+    ProfileService.requestAccountDeletion(deleteReason);
+    setConfirmDelete(false);
+    setDeleteReason('');
   };
 
   return (
@@ -65,6 +92,7 @@ const CustomerProfile: React.FC = () => {
          <button onClick={() => setActiveTab('addresses')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'addresses' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Alamat Saya</button>
          <button onClick={() => setActiveTab('payments')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'payments' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Metode Pembayaran</button>
          <button onClick={() => setActiveTab('security')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'security' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Keamanan</button>
+         <button onClick={() => setActiveTab('privacy')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'privacy' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Privasi & Data</button>
       </div>
 
       {activeTab === 'account' && (
@@ -224,6 +252,98 @@ const CustomerProfile: React.FC = () => {
                        ))}
                     </tbody>
                  </table>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {activeTab === 'privacy' && privacy && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           <div className="lg:col-span-2 space-y-8">
+              <div className="glass-panel p-8 rounded-[2.5rem] border-slate-800 shadow-xl">
+                 <h4 className="text-xl font-black text-white uppercase tracking-tight mb-8 flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+                    Kontrol Privasi Data
+                 </h4>
+                 <div className="space-y-4">
+                    {[
+                      { key: 'profileVisibility', label: 'Profil Publik Terlihat', desc: 'Izinkan member Sumatra lain melihat statistik belanja Anda.' },
+                      { key: 'marketingEmails', label: 'Email Pemasaran & Promo', desc: 'Dapatkan notifikasi voucher eksklusif via email.' },
+                      { key: 'regionalDataSync', label: 'Sinkronisasi Node Regional', desc: 'Bagikan preferensi belanja ke seluruh cabang Sumatra.' },
+                      { key: 'activityTracking', label: 'Pelacakan Aktivitas', desc: 'Bantu kami meningkatkan platform melalui log anonim.' }
+                    ].map(item => (
+                      <div key={item.key} className="p-5 bg-slate-950/50 border border-slate-800 rounded-2xl flex items-center justify-between group hover:border-indigo-500/30 transition-all">
+                         <div className="max-w-[70%]">
+                            <p className="text-sm font-bold text-white mb-1">{item.label}</p>
+                            <p className="text-[10px] text-slate-500 leading-relaxed">{item.desc}</p>
+                         </div>
+                         <button 
+                           onClick={() => handleTogglePrivacy(item.key as keyof PrivacySettings)}
+                           className={`w-12 h-6 rounded-full relative transition-all duration-300 ${privacy[item.key as keyof PrivacySettings] ? 'bg-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-slate-800'}`}
+                         >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${privacy[item.key as keyof PrivacySettings] ? 'right-1' : 'left-1'}`}></div>
+                         </button>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="glass-panel p-8 rounded-[2.5rem] border-slate-800 shadow-xl relative overflow-hidden">
+                 <div className="absolute top-0 right-0 p-8 opacity-5"><svg className="w-32 h-32 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2}/></svg></div>
+                 <h4 className="text-xl font-black text-white uppercase tracking-tight mb-4">Ekspor Data Pribadi</h4>
+                 <p className="text-sm text-slate-400 mb-8 max-w-lg leading-relaxed">Sesuai dengan kebijakan transparansi SeuramoeTech, Anda berhak mengunduh seluruh informasi yang kami simpan mengenai akun Anda.</p>
+                 <button 
+                   onClick={handleDownloadData}
+                   className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all border border-slate-700 flex items-center gap-3 shadow-xl"
+                 >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Download Data (JSON)
+                 </button>
+              </div>
+           </div>
+
+           <div className="space-y-8">
+              <div className="glass-panel p-8 rounded-[2.5rem] border-rose-500/20 bg-rose-600/5 shadow-xl">
+                 <h4 className="text-lg font-black text-rose-500 uppercase tracking-tight mb-4">Penghapusan Akun</h4>
+                 <p className="text-xs text-slate-400 leading-relaxed mb-10 italic">
+                    Penghapusan akun bersifat permanen. Seluruh riwayat poin loyalty, garansi, dan ledger transaksi Anda akan dianonimkan atau dihapus dari node pusat.
+                 </p>
+                 
+                 {!confirmDelete ? (
+                   <button 
+                     onClick={() => setConfirmDelete(true)}
+                     className="w-full py-4 bg-rose-600/10 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/20 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all"
+                   >
+                     Ajukan Penghapusan Akun
+                   </button>
+                 ) : (
+                   <div className="space-y-4 animate-in slide-in-from-top-4">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Alasan Penghapusan</label>
+                         <textarea 
+                           className="w-full bg-slate-950 border border-rose-500/30 rounded-xl p-4 text-xs text-white outline-none"
+                           rows={3}
+                           placeholder="Mengapa Anda ingin pergi?"
+                           value={deleteReason}
+                           onChange={e => setDeleteReason(e.target.value)}
+                         />
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => setConfirmDelete(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 text-[9px] font-black uppercase rounded-xl">Batal</button>
+                         <button onClick={handleDeleteRequest} className="flex-1 py-3 bg-rose-600 text-white text-[9px] font-black uppercase rounded-xl shadow-lg">Konfirmasi</button>
+                      </div>
+                   </div>
+                 )}
+              </div>
+
+              <div className="p-8 bg-indigo-600/10 border border-indigo-500/20 rounded-[2.5rem]">
+                 <p className="text-xs font-bold text-white mb-2 uppercase tracking-tight flex items-center gap-2">
+                    <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeWidth={2}/></svg>
+                    Data Protection Law
+                 </p>
+                 <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                    "Platform SeuramoeTech mematuhi standar perlindungan data pribadi nasional dan enkripsi tingkat regional Sumatra untuk menjamin keamanan identitas digital Anda."
+                 </p>
               </div>
            </div>
         </div>

@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import AuthService from './auth/AuthService';
 import { User, UserRole, SubscriptionTier } from './types';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
 import SubscriptionPlan from './pages/SubscriptionPlan';
 import Shell from './components/Layout/Shell';
 import Logo from './components/Shared/Logo';
@@ -11,6 +11,7 @@ import Logo from './components/Shared/Logo';
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(AuthService.getCurrentUser());
   const [activeTab, setActiveTab] = useState('overview');
+  const [view, setView] = useState<'landing' | 'auth'>('landing');
 
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   const handleLogout = () => {
     AuthService.logout();
     setUser(null);
+    setView('landing');
   };
 
   const handlePlanSelection = (tier: SubscriptionTier) => {
@@ -29,9 +31,21 @@ const App: React.FC = () => {
     }
   };
 
-  // Jika tidak login, tampilkan halaman login
+  // Jika tidak login
   if (!user) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    if (view === 'auth') {
+      return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
+    return (
+      <LandingPage 
+        onEnterAuth={() => setView('auth')} 
+        onEnterMarketplace={() => {
+          // Simulasi masuk ke marketplace sebagai tamu (guest)
+          // Untuk demo ini, kita arahkan ke login saja karena butuh peran user
+          setView('auth');
+        }} 
+      />
+    );
   }
 
   // Jika Store Owner login tapi tidak ada langganan aktif, paksa pilih paket

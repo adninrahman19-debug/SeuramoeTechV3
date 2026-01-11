@@ -1,11 +1,12 @@
 
 import AuthService from '../auth/AuthService';
-import { Address, PaymentMethod, LoginSession, User } from '../types';
+import { Address, PaymentMethod, LoginSession, PrivacySettings } from '../types';
 
 class ProfileService {
   private static ADDRESSES_KEY = 'st_user_addresses_';
   private static PAYMENTS_KEY = 'st_user_payments_';
   private static SESSIONS_KEY = 'st_user_sessions_';
+  private static PRIVACY_KEY = 'st_user_privacy_';
 
   private static getUserId(): string {
     return AuthService.getCurrentUser()?.id || 'guest';
@@ -81,6 +82,54 @@ class ProfileService {
     const sessions = this.getLoginSessions();
     const current = sessions.filter(s => s.isCurrent);
     this.saveSessions(current);
+  }
+
+  // Privacy & Data Methods
+  static getPrivacySettings(): PrivacySettings {
+    const data = localStorage.getItem(this.PRIVACY_KEY + this.getUserId());
+    if (!data) {
+      const initial: PrivacySettings = {
+        profileVisibility: true,
+        marketingEmails: true,
+        thirdPartySharing: false,
+        activityTracking: true,
+        regionalDataSync: true
+      };
+      this.savePrivacySettings(initial);
+      return initial;
+    }
+    return JSON.parse(data);
+  }
+
+  static savePrivacySettings(settings: PrivacySettings) {
+    localStorage.setItem(this.PRIVACY_KEY + this.getUserId(), JSON.stringify(settings));
+  }
+
+  static exportPersonalData() {
+    const user = AuthService.getCurrentUser();
+    const data = {
+      profile: user,
+      addresses: this.getAddresses(),
+      payments: this.getPaymentMethods(),
+      sessions: this.getLoginSessions(),
+      privacy: this.getPrivacySettings(),
+      exportDate: new Date().toISOString(),
+      platform: "SeuramoeTech Sumatra Regional Node"
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `seuramoetech-data-${user?.username || 'user'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  static requestAccountDeletion(reason: string) {
+    // In a real app, this would send a request to the Super Admin queue
+    console.log("Account deletion requested:", { userId: this.getUserId(), reason, timestamp: new Date().toISOString() });
+    alert("Permintaan penghapusan akun telah dikirim. Tim kepatuhan SeuramoeTech akan meninjau permintaan Anda dalam 7 hari kerja.");
   }
 }
 

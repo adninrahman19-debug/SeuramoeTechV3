@@ -101,6 +101,14 @@ export interface LoginSession {
   isCurrent: boolean;
 }
 
+export interface PrivacySettings {
+  profileVisibility: boolean;
+  marketingEmails: boolean;
+  thirdPartySharing: boolean;
+  activityTracking: boolean;
+  regionalDataSync: boolean;
+}
+
 export interface StoreConfig {
   notifications: {
     email: boolean;
@@ -547,6 +555,7 @@ export interface User {
   isVerified?: boolean;
   addresses?: Address[];
   paymentMethods?: PaymentMethod[];
+  privacySettings?: PrivacySettings;
 }
 
 export interface SubscriptionPlan {
