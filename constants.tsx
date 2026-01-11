@@ -63,43 +63,44 @@ export const DEMO_USERS: User[] = [
 export const SUBSCRIPTION_PLANS = [
   {
     tier: SubscriptionTier.BASIC,
-    name: 'Standard Aceh',
+    name: 'Starter',
     priceMonthly: 499000,
     priceYearly: 4990000,
+    description: 'Solusi retail dasar untuk toko laptop tunggal.',
     features: [
-      '1 Store Location',
-      '3 Staff Accounts',
-      '100 Product Listings',
-      '20 Service Tickets/mo',
-      'Daily Reporting'
+      '1 Store Management',
+      'Limited Product Listings',
+      'Basic Operational Report',
+      'Standard Tech Support',
+      '1 Admin Account'
     ]
   },
   {
     tier: SubscriptionTier.PRO,
-    name: 'Sumatra Expansion',
+    name: 'Business',
     priceMonthly: 1299000,
     priceYearly: 12990000,
+    description: 'Tingkatkan performa dengan manajemen tim & marketing.',
     features: [
-      '3 Store Locations',
-      '10 Staff Accounts',
-      'Unlimited Products',
-      '100 Service Tickets/mo',
-      'Weekly/Monthly Reports',
-      'Custom Branding'
+      'Multi-Staff Access Control',
+      'Promo & Discount Engine',
+      'Full Analytical Reports',
+      'WhatsApp Integration',
+      'Inventory Smart Alerts'
     ]
   },
   {
     tier: SubscriptionTier.ENTERPRISE,
-    name: 'Tech Giant',
+    name: 'Enterprise',
     priceMonthly: 2999000,
     priceYearly: 29990000,
+    description: 'Skala korporasi tanpa batas dengan dukungan prioritas.',
     features: [
-      'Unlimited Stores',
-      'Unlimited Staff',
-      'Unlimited Products',
-      'Priority Support',
-      'Advanced Analytics',
-      'White-label Experience'
+      'Unlimited Stores & Staff',
+      'Custom Storefront Branding',
+      'Priority 24/7 Node Support',
+      'White-label Experience',
+      'Advanced API Access'
     ]
   }
 ];
