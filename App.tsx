@@ -4,6 +4,7 @@ import { User, UserRole, SubscriptionTier } from './types';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
+import GuestMarketplace from './pages/GuestMarketplace';
 import SubscriptionPlan from './pages/SubscriptionPlan';
 import Shell from './components/Layout/Shell';
 import Logo from './components/Shared/Logo';
@@ -11,7 +12,7 @@ import Logo from './components/Shared/Logo';
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(AuthService.getCurrentUser());
   const [activeTab, setActiveTab] = useState('overview');
-  const [view, setView] = useState<'landing' | 'auth'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'marketplace'>('landing');
 
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
@@ -36,14 +37,16 @@ const App: React.FC = () => {
     if (view === 'auth') {
       return <Login onLoginSuccess={handleLoginSuccess} />;
     }
+    if (view === 'marketplace') {
+      return <GuestMarketplace 
+        onBackToLanding={() => setView('landing')} 
+        onAuthRequired={() => setView('auth')} 
+      />;
+    }
     return (
       <LandingPage 
         onEnterAuth={() => setView('auth')} 
-        onEnterMarketplace={() => {
-          // Simulasi masuk ke marketplace sebagai tamu (guest)
-          // Untuk demo ini, kita arahkan ke login saja karena butuh peran user
-          setView('auth');
-        }} 
+        onEnterMarketplace={() => setView('marketplace')} 
       />
     );
   }

@@ -21,12 +21,12 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [role, setRole] = useState<UserRole>(UserRole.CUSTOMER);
 
   const demoAccounts = [
-    { name: 'Super Admin', user: 'superadmin', pass: 'Super@123', role: 'Platform Global', color: 'indigo' },
-    { name: 'Store Owner', user: 'owner_acehtech', pass: 'Owner@123', role: 'Aceh Tech Center', color: 'emerald' },
-    { name: 'Staff Admin', user: 'admin_toko1', pass: 'Admin@123', role: 'Operations', color: 'blue' },
-    { name: 'Technician', user: 'tech_toko1', pass: 'Tech@123', role: 'Repair Desk', color: 'amber' },
-    { name: 'Marketing', user: 'marketing_toko1', pass: 'Market@123', role: 'Growth Staff', color: 'rose' },
-    { name: 'Customer', user: 'customer001', pass: 'Customer@123', role: 'Standard User', color: 'slate' },
+    { name: 'Super Admin', user: 'superadmin', pass: 'Super@123', role: 'Global Platform', color: 'indigo' },
+    { name: 'Pemilik Toko', user: 'owner_acehtech', pass: 'Owner@123', role: 'Aceh Tech Center', color: 'emerald' },
+    { name: 'Admin Staf', user: 'admin_toko1', pass: 'Admin@123', role: 'Operasional', color: 'blue' },
+    { name: 'Teknisi', user: 'tech_toko1', pass: 'Tech@123', role: 'Meja Perbaikan', color: 'amber' },
+    { name: 'Pemasaran', user: 'marketing_toko1', pass: 'Market@123', role: 'Staf Pertumbuhan', color: 'rose' },
+    { name: 'Pelanggan', user: 'customer001', pass: 'Customer@123', role: 'Pengguna Standar', color: 'slate' },
   ];
 
   const handleQuickAccess = (user: string, pass: string) => {
@@ -34,7 +34,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setPassword(pass);
     setIsLoading(true);
     
-    // Simulate auto-typing/filling delay for better UX
+    // Simulasi penundaan pengetikan otomatis untuk UX yang lebih baik
     setTimeout(() => {
       const loggedUser = AuthService.login(user, pass);
       if (loggedUser) {
@@ -62,7 +62,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       } else {
         try {
           AuthService.register({ fullName, username, email, role });
-          alert('Registrasi berhasil! Silakan login.');
+          alert('Registrasi berhasil! Silakan masuk.');
           setIsLoginMode(true);
         } catch (err) {
           setError('Gagal mendaftar.');
@@ -117,7 +117,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               {error && <div className="text-rose-400 text-xs font-bold text-center bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">{error}</div>}
 
               <button type="submit" disabled={isLoading} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-3">
-                {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (isLoginMode ? 'Akses Dashboard' : 'Mulai Bisnis Sekarang')}
+                {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (isLoginMode ? 'Masuk Dashboard' : 'Mulai Bisnis Sekarang')}
               </button>
             </form>
           </div>
@@ -160,24 +160,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
           </div>
         </div>
-        
-        {/* Mobile Quick Access (Simplified) */}
-        <div className="lg:hidden mt-8 text-center">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-4">Akses Cepat Demo</p>
-            <div className="flex flex-wrap justify-center gap-2">
-                {demoAccounts.slice(0, 3).map(acc => (
-                    <button key={acc.user} onClick={() => handleQuickAccess(acc.user, acc.pass)} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white transition-colors">
-                        {acc.name}
-                    </button>
-                ))}
-            </div>
-        </div>
-
       </div>
 
       <footer className="absolute bottom-8 left-0 right-0 text-center">
          <p className="text-slate-600 text-[10px] font-black uppercase tracking-[0.4em]">
-            &copy; 2024 SeuramoeTech Platform • Regional Aceh & Sumatra
+            &copy; 2024 Platform SeuramoeTech • Regional Aceh & Sumatra
          </p>
       </footer>
     </div>

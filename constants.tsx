@@ -2,7 +2,7 @@
 import React from 'react';
 import { UserRole, User, SubscriptionTier } from './types';
 
-// Adding missing 'status' property to each demo user to match the User interface definition
+// Menyesuaikan status dan detail demo user ke Bahasa Indonesia
 export const DEMO_USERS: User[] = [
   {
     id: 'u1',
@@ -63,44 +63,44 @@ export const DEMO_USERS: User[] = [
 export const SUBSCRIPTION_PLANS = [
   {
     tier: SubscriptionTier.BASIC,
-    name: 'Starter',
+    name: 'Pemula (Starter)',
     priceMonthly: 499000,
     priceYearly: 4990000,
     description: 'Solusi retail dasar untuk toko laptop tunggal.',
     features: [
-      '1 Store Management',
-      'Limited Product Listings',
-      'Basic Operational Report',
-      'Standard Tech Support',
-      '1 Admin Account'
+      'Manajemen 1 Toko',
+      'Katalog Produk Terbatas',
+      'Laporan Operasional Dasar',
+      'Dukungan Teknis Standar',
+      '1 Akun Admin'
     ]
   },
   {
     tier: SubscriptionTier.PRO,
-    name: 'Business',
+    name: 'Bisnis (Business)',
     priceMonthly: 1299000,
     priceYearly: 12990000,
-    description: 'Tingkatkan performa dengan manajemen tim & marketing.',
+    description: 'Tingkatkan performa dengan manajemen tim & pemasaran.',
     features: [
-      'Multi-Staff Access Control',
-      'Promo & Discount Engine',
-      'Full Analytical Reports',
-      'WhatsApp Integration',
-      'Inventory Smart Alerts'
+      'Kontrol Akses Multi-Staf',
+      'Mesin Promo & Diskon',
+      'Laporan Analitik Lengkap',
+      'Integrasi WhatsApp API',
+      'Peringatan Stok Pintar'
     ]
   },
   {
     tier: SubscriptionTier.ENTERPRISE,
-    name: 'Enterprise',
+    name: 'Korporat (Enterprise)',
     priceMonthly: 2999000,
     priceYearly: 29990000,
     description: 'Skala korporasi tanpa batas dengan dukungan prioritas.',
     features: [
-      'Unlimited Stores & Staff',
-      'Custom Storefront Branding',
-      'Priority 24/7 Node Support',
-      'White-label Experience',
-      'Advanced API Access'
+      'Toko & Staf Tanpa Batas',
+      'Branding Toko Kustom',
+      'Dukungan Node Prioritas 24/7',
+      'Pengalaman White-label',
+      'Akses API Lanjutan'
     ]
   }
 ];

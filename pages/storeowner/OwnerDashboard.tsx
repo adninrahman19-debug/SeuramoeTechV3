@@ -15,7 +15,6 @@ import StoreSettings from './StoreSettings';
 import OwnerSecurity from './OwnerSecurity';
 import OwnerIntelligence from './OwnerIntelligence';
 import { ICONS } from '../../constants';
-// Add comment: Fix missing user variable by importing AuthService
 import AuthService from '../../auth/AuthService';
 
 interface OwnerDashboardProps {
@@ -24,7 +23,6 @@ interface OwnerDashboardProps {
 }
 
 const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange }) => {
-  // Add comment: Obtain the current user from AuthService
   const user = AuthService.getCurrentUser();
 
   return (
@@ -35,8 +33,8 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
               <ICONS.Store className="w-7 h-7" />
            </div>
            <div>
-             <h1 className="text-3xl font-black text-white tracking-tight">Store Command Center</h1>
-             <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-0.5">Aceh Tech Center • Operational Core</p>
+             <h1 className="text-3xl font-black text-white tracking-tight">Komando Toko</h1>
+             <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-0.5">Aceh Tech Center • Inti Operasional</p>
            </div>
         </div>
         
@@ -47,18 +45,19 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
               onClick={() => onTabChange(tab)}
               className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'}`}
             >
-              {tab === 'tickets' ? 'Service Hub' : 
-               tab === 'financials' ? 'Payments' : 
-               tab === 'settings' ? 'Store Settings' : 
-               tab === 'promo' ? 'Discounts' : 
-               tab === 'marketing' ? 'Growth' : 
-               tab === 'orders' ? 'Fulfillment' : 
-               tab === 'staff' ? 'Workforce' : 
+              {tab === 'overview' ? 'Ringkasan' :
+               tab === 'tickets' ? 'Pusat Servis' : 
+               tab === 'financials' ? 'Pembayaran' : 
+               tab === 'settings' ? 'Pengaturan Toko' : 
+               tab === 'promo' ? 'Diskon & Promo' : 
+               tab === 'marketing' ? 'Branding' : 
+               tab === 'orders' ? 'Pesanan' : 
+               tab === 'staff' ? 'Tenaga Kerja' : 
                tab === 'feedback' ? 'Ulasan' : 
-               tab === 'billing' ? 'SaaS Billing' : 
-               tab === 'reports' ? 'Analitik' : 
+               tab === 'billing' ? 'Tagihan SaaS' : 
+               tab === 'reports' ? 'Laporan' : 
                tab === 'security' ? 'Keamanan' : 
-               tab === 'smart' ? '🧠 Smart Hub' : tab}
+               tab === 'smart' ? '🧠 Hub Pintar' : tab}
             </button>
           ))}
         </div>
@@ -83,11 +82,11 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
       <div className="p-6 bg-indigo-600/10 border border-indigo-500/20 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
          <div className="flex items-center gap-4">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <p className="text-[10px] font-black text-white uppercase tracking-widest">Store Node Sum-North-01: Operational</p>
+            <p className="text-[10px] font-black text-white uppercase tracking-widest">Node Toko Sumatra-North: Beroperasi Normal</p>
          </div>
          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Subscription Status:</span>
-            <span className="px-3 py-1 bg-indigo-600 text-white text-[9px] font-black rounded-lg uppercase tracking-widest">{user?.subscriptionTier} PLAN - ACTIVE</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Status Langganan:</span>
+            <span className="px-3 py-1 bg-indigo-600 text-white text-[9px] font-black rounded-lg uppercase tracking-widest">PAKET {user?.subscriptionTier} - AKTIF</span>
          </div>
       </div>
     </div>
