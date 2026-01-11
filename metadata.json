@@ -1,0 +1,7 @@
+{
+  "name": "Copy of SeuramoeTech SaaS Ecosystem",
+  "description": "A comprehensive, subscription-based digital gateway for technology businesses in Aceh and Sumatra, offering integrated laptop sales, inventory management, and service ticket tracking with role-based access control.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
