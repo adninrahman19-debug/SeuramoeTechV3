@@ -556,6 +556,7 @@ export interface User {
   addresses?: Address[];
   paymentMethods?: PaymentMethod[];
   privacySettings?: PrivacySettings;
+  requiresPasswordChange?: boolean;
 }
 
 export interface SubscriptionPlan {
