@@ -74,6 +74,33 @@ export enum WarrantyStatus {
   REPLACED = 'REPLACED'
 }
 
+export interface Address {
+  id: string;
+  label: string; // 'Rumah', 'Kantor'
+  receiverName: string;
+  phone: string;
+  fullAddress: string;
+  isDefault: boolean;
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: 'CARD' | 'EWALLET' | 'BANK';
+  provider: string;
+  accountNumber: string;
+  expiryDate?: string;
+  isDefault: boolean;
+}
+
+export interface LoginSession {
+  id: string;
+  device: string;
+  ip: string;
+  location: string;
+  lastActive: string;
+  isCurrent: boolean;
+}
+
 export interface StoreConfig {
   notifications: {
     email: boolean;
@@ -507,6 +534,7 @@ export interface User {
   isSubscriptionActive?: boolean;
   subscriptionStatus?: SubscriptionStatus;
   email: string;
+  phone?: string;
   status: 'active' | 'suspended' | 'pending' | 'banned';
   lastLogin?: string;
   lastIp?: string;
@@ -517,6 +545,8 @@ export interface User {
   subscriptionExpiry?: string;
   autoRenew?: boolean;
   isVerified?: boolean;
+  addresses?: Address[];
+  paymentMethods?: PaymentMethod[];
 }
 
 export interface SubscriptionPlan {

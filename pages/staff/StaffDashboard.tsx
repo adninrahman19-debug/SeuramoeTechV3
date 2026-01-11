@@ -16,6 +16,13 @@ import TechnicianHistory from './TechnicianHistory.tsx';
 import TechnicianWarrantyManager from './TechnicianWarrantyManager.tsx';
 import TechnicianPerformance from './TechnicianPerformance.tsx';
 import TechnicianTools from './TechnicianTools.tsx';
+import MarketingOverview from './MarketingOverview.tsx';
+import MarketingCampaigns from './MarketingCampaigns.tsx';
+import MarketingAnalytics from './MarketingAnalytics.tsx';
+import MarketingContent from './MarketingContent.tsx';
+import MarketingEngagement from './MarketingEngagement.tsx';
+import MarketingReports from './MarketingReports.tsx';
+import StaffSecurityPolicy from './StaffSecurityPolicy.tsx';
 import { ICONS } from '../../constants.tsx';
 
 interface StaffDashboardProps {
@@ -69,41 +76,23 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
       }
     }
 
-    // 3. Logic for Marketing & Others
-    switch (internalTab) {
-      case 'overview':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="space-y-8">
-               <PersonalMetrics role={user?.role || UserRole.MARKETING} />
-               <div className="glass-panel p-6 rounded-3xl border-slate-800">
-                  <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Quick Actions</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                     <button className="flex flex-col items-center justify-center p-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-indigo-500/50 group transition-all">
-                        <div className="p-3 bg-indigo-600/10 text-indigo-400 rounded-xl mb-2 group-hover:bg-indigo-600 group-hover:text-white transition-all"><ICONS.Plus className="w-5 h-5" /></div>
-                        <span className="text-[10px] font-black uppercase text-slate-500 group-hover:text-white">New Sale</span>
-                     </button>
-                     <button className="flex flex-col items-center justify-center p-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-emerald-500/50 group transition-all">
-                        <div className="p-3 bg-emerald-600/10 text-emerald-400 rounded-xl mb-2 group-hover:bg-emerald-600 group-hover:text-white transition-all"><ICONS.Users className="w-5 h-5" /></div>
-                        <span className="text-[10px] font-black uppercase text-slate-500 group-hover:text-white">Users</span>
-                     </button>
-                  </div>
-               </div>
-            </div>
-            <div className="lg:col-span-2">
-               <TaskQueue isTechnician={false} />
-            </div>
-          </div>
-        );
-      case 'tasks': return <TaskQueue isTechnician={false} />;
-      case 'inventory': return <StaffInventoryManager />; 
-      case 'orders': return <StaffOrderManager />;
-      case 'financials': return <StaffPayments />;
-      case 'tickets': return <StaffServiceHub />;
-      case 'feedback': return <StaffFeedbackManager />;
-      case 'reports': return <StaffOperationalReports />;
-      default: return <div>Halaman sedang dalam pengembangan.</div>;
+    // 3. Logic for Marketing
+    if (isMarketing) {
+      switch (internalTab) {
+        case 'overview': return <MarketingOverview />;
+        case 'promo': return <MarketingCampaigns />;
+        case 'analytics': return <MarketingAnalytics />;
+        case 'content': return <MarketingContent />;
+        case 'engagement': return <MarketingEngagement />;
+        case 'reports': return <MarketingReports />;
+        case 'security': return <StaffSecurityPolicy />;
+        case 'feedback': return <StaffFeedbackManager />;
+        default: return <MarketingOverview />;
+      }
     }
+
+    // 4. Default Case
+    return <div>Halaman sedang dalam pengembangan.</div>;
   };
 
   const adminTabs = [
@@ -126,7 +115,18 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
     { id: 'performance', label: 'Performa Saya' },
   ];
 
-  const currentTabs = isStaffAdmin ? adminTabs : isTechnician ? technicianTabs : [];
+  const marketingTabs = [
+    { id: 'overview', label: 'Growth Stats' },
+    { id: 'promo', label: 'Promo & Campaign' },
+    { id: 'content', label: 'Konten & Branding' },
+    { id: 'engagement', label: 'Engagement' },
+    { id: 'analytics', label: 'Market Analytics' },
+    { id: 'reports', label: 'Marketing Reports' },
+    { id: 'security', label: 'Kebijakan Akses' },
+    { id: 'feedback', label: 'Customer Reviews' },
+  ];
+
+  const currentTabs = isStaffAdmin ? adminTabs : isTechnician ? technicianTabs : isMarketing ? marketingTabs : [];
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pb-12">

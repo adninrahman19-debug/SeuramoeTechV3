@@ -67,7 +67,7 @@ class SupportService {
       const initialComplaints: CustomerComplaint[] = [
         {
           id: 'C-001', storeId: 's1', storeName: 'Aceh Tech Center',
-          customerName: 'Sufyan', subject: 'Layanan Lambat',
+          customerName: 'Ali Akbar', subject: 'Layanan Lambat',
           message: 'Laptop saya sudah seminggu belum ada kabar progres servisnya.',
           severity: 'MAJOR', isResolved: false, status: SupportStatus.OPEN,
           createdAt: new Date(Date.now() - 259200000).toISOString()
@@ -153,8 +153,21 @@ class SupportService {
     return storeId ? all.filter((c: CustomerComplaint) => c.storeId === storeId) : all;
   }
 
+  static createComplaint(complaint: Omit<CustomerComplaint, 'id' | 'createdAt' | 'isResolved' | 'status'>) {
+    const all = this.getComplaints();
+    const newComplaint: CustomerComplaint = {
+      ...complaint,
+      id: 'C-' + Math.floor(1000 + Math.random() * 9000),
+      createdAt: new Date().toISOString(),
+      isResolved: false,
+      status: SupportStatus.OPEN
+    };
+    localStorage.setItem(this.COMPLAINTS_KEY, JSON.stringify([newComplaint, ...all]));
+    return newComplaint;
+  }
+
   static updateComplaint(id: string, updates: Partial<CustomerComplaint>) {
-    const all = JSON.parse(localStorage.getItem(this.COMPLAINTS_KEY) || '[]');
+    const all = this.getComplaints();
     const updated = all.map((c: CustomerComplaint) => c.id === id ? { ...c, ...updates } : c);
     localStorage.setItem(this.COMPLAINTS_KEY, JSON.stringify(updated));
   }

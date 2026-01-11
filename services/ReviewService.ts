@@ -1,4 +1,3 @@
-
 import { Review } from '../types';
 
 class ReviewService {
@@ -15,20 +14,49 @@ class ReviewService {
     }
   }
 
-  static getReviews(storeId: string): Review[] {
+  static getAllReviews(): Review[] {
     this.init();
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-    return all.filter((r: Review) => r.storeId === storeId);
+    return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+  }
+
+  static getReviews(storeId: string): Review[] {
+    return this.getAllReviews().filter((r: Review) => r.storeId === storeId);
+  }
+
+  static addReview(review: Omit<Review, 'id' | 'createdAt' | 'status'>) {
+    const all = this.getAllReviews();
+    const newReview: Review = {
+      ...review,
+      id: 'rev-' + Date.now(),
+      status: 'active',
+      createdAt: new Date().toISOString()
+    };
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify([newReview, ...all]));
+    window.dispatchEvent(new Event('reviews-updated'));
+    return newReview;
+  }
+
+  static updateReview(id: string, comment: string, rating: number) {
+    const all = this.getAllReviews();
+    const updated = all.map(r => r.id === id ? { ...r, comment, rating, createdAt: new Date().toISOString() } : r);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('reviews-updated'));
+  }
+
+  static deleteReview(id: string) {
+    const all = this.getAllReviews();
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(all.filter(r => r.id !== id)));
+    window.dispatchEvent(new Event('reviews-updated'));
   }
 
   static reply(id: string, reply: string) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    const all = this.getAllReviews();
     const updated = all.map((r: Review) => r.id === id ? { ...r, reply } : r);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
   }
 
   static toggleVisibility(id: string) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    const all = this.getAllReviews();
     const updated = all.map((r: Review) => r.id === id ? { ...r, status: r.status === 'active' ? 'hidden' : 'active' } : r);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
   }
