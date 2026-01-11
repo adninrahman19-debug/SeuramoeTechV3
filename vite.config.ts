@@ -16,8 +16,7 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          // Fix: Use path.resolve('.') instead of __dirname to avoid "Cannot find name '__dirname'" in ES module environments
-          '@': path.resolve('.'),
+          '@': path.resolve(__dirname, '.'),
         }
       }
     };

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import AuthService from './auth/AuthService.ts';
-import { User, UserRole, SubscriptionTier } from './types.ts';
-import Login from './pages/Login.tsx';
-import Dashboard from './pages/Dashboard.tsx';
-import SubscriptionPlan from './pages/SubscriptionPlan.tsx';
-import Shell from './components/Layout/Shell.tsx';
-import Logo from './components/Shared/Logo.tsx';
+
+import React, { useState, useEffect } from 'react';
+import AuthService from './auth/AuthService';
+import { User, UserRole, SubscriptionTier } from './types';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import SubscriptionPlan from './pages/SubscriptionPlan';
+import Shell from './components/Layout/Shell';
+import Logo from './components/Shared/Logo';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(AuthService.getCurrentUser());
@@ -13,7 +14,7 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
-    setActiveTab('overview');
+    setActiveTab('overview'); // Reset tab saat login
   };
 
   const handleLogout = () => {
@@ -28,10 +29,12 @@ const App: React.FC = () => {
     }
   };
 
+  // Jika tidak login, tampilkan halaman login
   if (!user) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
+  // Jika Store Owner login tapi tidak ada langganan aktif, paksa pilih paket
   if (user.role === UserRole.STORE_OWNER && !user.isSubscriptionActive) {
     return (
       <div className="min-h-screen bg-[#020617] flex flex-col items-center">
@@ -49,6 +52,7 @@ const App: React.FC = () => {
     );
   }
 
+  // Main Dashboard Shell
   return (
     <Shell onLogout={handleLogout} activeTab={activeTab} onNavigate={setActiveTab}>
       <Dashboard activeTab={activeTab} onTabChange={setActiveTab} />

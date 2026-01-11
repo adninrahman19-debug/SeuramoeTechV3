@@ -1,10 +1,11 @@
+
 import React from 'react';
-import { UserRole } from '../types.ts';
-import AuthService from '../auth/AuthService.ts';
-import SuperAdminDashboard from './superadmin/SuperAdminDashboard.tsx';
-import OwnerDashboard from './storeowner/OwnerDashboard.tsx';
-import StaffDashboard from './staff/StaffDashboard.tsx';
-import CustomerDashboard from './customer/CustomerDashboard.tsx';
+import { UserRole } from '../types';
+import AuthService from '../auth/AuthService';
+import SuperAdminDashboard from './superadmin/SuperAdminDashboard';
+import OwnerDashboard from './storeowner/OwnerDashboard';
+import StaffDashboard from './staff/StaffDashboard';
+import CustomerDashboard from './customer/CustomerDashboard';
 
 interface DashboardProps {
   activeTab: string;
@@ -16,6 +17,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTab, onTabChange }) => {
 
   if (!user) return null;
 
+  // Dispatcher logic based on role
   switch (user.role) {
     case UserRole.SUPER_ADMIN:
       return <SuperAdminDashboard activeTab={activeTab as any} onTabChange={onTabChange} />;
@@ -26,6 +28,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeTab, onTabChange }) => {
     case UserRole.STAFF_ADMIN:
     case UserRole.TECHNICIAN:
     case UserRole.MARKETING:
+      // Staff uses internal tab state now to manage the complex admin hub
       return <StaffDashboard activeTab={activeTab as any} />;
     
     case UserRole.CUSTOMER:

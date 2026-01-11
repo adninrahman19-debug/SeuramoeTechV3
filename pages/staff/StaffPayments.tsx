@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { ICONS } from '../../constants.tsx';
-import { Transaction, PaymentStatus } from '../../types.ts';
-import TransactionService from '../../services/TransactionService.ts';
-import OrderService from '../../services/OrderService.ts';
-import StatCard from '../../components/Shared/StatCard.tsx';
-import AuthService from '../../auth/AuthService.ts';
+import { ICONS } from '../../constants';
+import { Transaction, PaymentStatus } from '../../types';
+import TransactionService from '../../services/TransactionService';
+import OrderService from '../../services/OrderService';
+import StatCard from '../../components/Shared/StatCard';
 
 interface CashEntry {
   id: string;
@@ -19,6 +19,7 @@ const StaffPayments: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
   
+  // Cash Report States
   const [cashEntries, setCashEntries] = useState<CashEntry[]>([
     { id: '1', type: 'IN', amount: 450000, description: 'Servis Laptop Lenovo (Tunai)', time: '08:45' },
     { id: '2', type: 'OUT', amount: 50000, description: 'Bensin Kurir Antar-Jemput', time: '09:12' },
@@ -31,9 +32,11 @@ const StaffPayments: React.FC = () => {
   }, []);
 
   const loadData = () => {
+    // In a real app, filter by storeId and manual payment methods
     const allTx = TransactionService.getAll().filter(t => t.storeId === 's1');
     setTransactions(allTx);
     
+    // Mocking orders that need manual bank verification
     setPendingVerifications([
       { id: 'V-8821', orderId: 'ORD-99211', customer: 'Ali Akbar', amount: 1450000, bank: 'Bank Aceh', proof: 'https://images.unsplash.com/photo-1627634777217-c864268db30c?q=80&w=200', date: '10m ago' },
       { id: 'V-8822', orderId: 'ORD-99212', customer: 'CV Berkah', amount: 28500000, bank: 'Mandiri', proof: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=200', date: '1h ago' },
@@ -57,6 +60,7 @@ const StaffPayments: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-right-4 duration-500 pb-12">
+      {/* Navigation & Header */}
       <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
         <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-2xl w-fit overflow-x-auto max-w-full shadow-2xl">
            <button onClick={() => setActiveTab('verification')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'verification' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Verifikasi Manual</button>
@@ -73,6 +77,7 @@ const StaffPayments: React.FC = () => {
         )}
       </div>
 
+      {/* Tab Content: Verifikasi Manual */}
       {activeTab === 'verification' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {pendingVerifications.length === 0 ? (
@@ -125,6 +130,7 @@ const StaffPayments: React.FC = () => {
         </div>
       )}
 
+      {/* Tab Content: Riwayat Transaksi */}
       {activeTab === 'history' && (
         <div className="space-y-6">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -178,6 +184,7 @@ const StaffPayments: React.FC = () => {
         </div>
       )}
 
+      {/* Tab Content: Metode Aktif */}
       {activeTab === 'methods' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            {[
@@ -210,6 +217,7 @@ const StaffPayments: React.FC = () => {
         </div>
       )}
 
+      {/* Tab Content: Laporan Kas Harian */}
       {activeTab === 'cash_report' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
            <div className="lg:col-span-2 space-y-8">
@@ -228,6 +236,7 @@ const StaffPayments: React.FC = () => {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+                    {/* Cash In */}
                     <div className="space-y-6">
                        <div className="flex justify-between items-center border-b border-emerald-500/20 pb-4">
                           <h4 className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em]">Penerimaan Tunai</h4>
@@ -247,6 +256,7 @@ const StaffPayments: React.FC = () => {
                        </div>
                     </div>
 
+                    {/* Cash Out */}
                     <div className="space-y-6">
                        <div className="flex justify-between items-center border-b border-rose-500/20 pb-4">
                           <h4 className="text-xs font-black text-rose-500 uppercase tracking-[0.2em]">Pengeluaran Operasional</h4>

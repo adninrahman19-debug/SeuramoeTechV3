@@ -1,27 +1,30 @@
+
 import React from 'react';
-import OwnerOverview from './OwnerOverview.tsx';
-import StaffControl from './StaffControl.tsx';
-import InventoryManager from './InventoryManager.tsx';
-import ServiceHub from './ServiceHub.tsx';
-import PromoManager from './PromoManager.tsx';
-import MarketingHub from './MarketingHub.tsx';
-import OrderManager from './OrderManager.tsx';
-import FinancialsManager from './FinancialsManager.tsx';
-import ReviewsComplaints from './ReviewsComplaints.tsx';
-import BillingManager from './BillingManager.tsx';
-import ReportsAnalytics from './ReportsAnalytics.tsx';
-import StoreSettings from './StoreSettings.tsx';
-import OwnerSecurity from './OwnerSecurity.tsx';
-import OwnerIntelligence from './OwnerIntelligence.tsx';
-import { ICONS } from '../../constants.tsx';
-import AuthService from '../../auth/AuthService.ts';
+import OwnerOverview from './OwnerOverview';
+import StaffControl from './StaffControl';
+import InventoryManager from './InventoryManager';
+import ServiceHub from './ServiceHub';
+import PromoManager from './PromoManager';
+import MarketingHub from './MarketingHub';
+import OrderManager from './OrderManager';
+import FinancialsManager from './FinancialsManager';
+import ReviewsComplaints from './ReviewsComplaints';
+import BillingManager from './BillingManager';
+import ReportsAnalytics from './ReportsAnalytics';
+import StoreSettings from './StoreSettings';
+import OwnerSecurity from './OwnerSecurity';
+import OwnerIntelligence from './OwnerIntelligence';
+import { ICONS } from '../../constants';
+// Add comment: Fix missing user variable by importing AuthService
+import AuthService from '../../auth/AuthService';
 
 interface OwnerDashboardProps {
-  activeTab: string;
+  activeTab: 'overview' | 'staff' | 'inventory' | 'tickets' | 'financials' | 'settings' | 'promo' | 'marketing' | 'orders' | 'feedback' | 'billing' | 'reports' | 'security' | 'smart';
   onTabChange: (tab: any) => void;
 }
 
 const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange }) => {
+  // Add comment: Obtain the current user from AuthService
   const user = AuthService.getCurrentUser();
 
   return (
@@ -76,6 +79,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
       {activeTab === 'security' && <OwnerSecurity />}
       {activeTab === 'smart' && <OwnerIntelligence />}
       
+      {/* Footer Status for Owner */}
       <div className="p-6 bg-indigo-600/10 border border-indigo-500/20 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
          <div className="flex items-center gap-4">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
