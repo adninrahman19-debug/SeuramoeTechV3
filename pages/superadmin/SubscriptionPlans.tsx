@@ -10,12 +10,13 @@ const SubscriptionPlans: React.FC = () => {
   const [currentPlan, setCurrentPlan] = useState<Partial<SubscriptionPlan> | null>(null);
 
   const handleEdit = (plan: SubscriptionPlan) => {
-    setCurrentPlan(plan);
+    setCurrentPlan({ ...plan });
     setIsEditing(true);
   };
 
   const handleCreate = () => {
     setCurrentPlan({
+      id: '', // Empty for new
       name: '',
       tier: SubscriptionTier.BASIC,
       priceMonthly: 0,
@@ -28,15 +29,20 @@ const SubscriptionPlans: React.FC = () => {
   };
 
   const handleSave = () => {
-    if (currentPlan) {
-      BillingService.savePlan(currentPlan as SubscriptionPlan);
-      setPlans(BillingService.getPlans());
-      setIsEditing(false);
+    if (currentPlan && currentPlan.name && currentPlan.priceMonthly !== undefined) {
+      if (confirm(`Simpan perubahan untuk paket "${currentPlan.name}"?`)) {
+        BillingService.savePlan(currentPlan as SubscriptionPlan);
+        setPlans(BillingService.getPlans());
+        setIsEditing(false);
+        setCurrentPlan(null);
+      }
+    } else {
+      alert("Harap lengkapi nama paket dan harga bulanan.");
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Delete this plan? Existing users won't be affected but new signups will be blocked.")) {
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus paket "${name}"? Pengguna yang sudah berlangganan tidak akan terpengaruh secara langsung, namun paket ini tidak lagi tersedia untuk pelanggan baru.`)) {
       BillingService.deletePlan(id);
       setPlans(BillingService.getPlans());
     }
@@ -66,8 +72,8 @@ const SubscriptionPlans: React.FC = () => {
                    <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded">{plan.tier}</span>
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button onClick={() => handleEdit(plan)} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg"><ICONS.Settings className="w-4 h-4" /></button>
-                   <button onClick={() => handleDelete(plan.id)} className="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                   <button onClick={() => handleEdit(plan)} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg" title="Edit Paket"><ICONS.Settings className="w-4 h-4" /></button>
+                   <button onClick={() => handleDelete(plan.id, plan.name)} className="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg" title="Hapus Paket"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                 </div>
              </div>
 
@@ -99,7 +105,7 @@ const SubscriptionPlans: React.FC = () => {
              </div>
 
              <div className="mt-8 grid grid-cols-2 gap-2">
-                <div className={`p-3 rounded-2xl border ${plan.features.branding ? 'border-indigo-500/30 bg-indigo-500/5' : 'border-slate-800 bg-slate-900/50'}`}>
+                <div className={`p-3 rounded-2xl border ${plan.features.branding ? 'border-indigo-500/30 bg-indigo-600/5' : 'border-slate-800 bg-slate-900/50'}`}>
                    <p className="text-[9px] font-black uppercase text-slate-500">Branding</p>
                    <p className={`text-[10px] font-bold mt-1 ${plan.features.branding ? 'text-indigo-400' : 'text-slate-600'}`}>{plan.features.branding ? 'ENABLED' : 'LOCKED'}</p>
                 </div>
@@ -118,7 +124,7 @@ const SubscriptionPlans: React.FC = () => {
            <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-8 border-b border-slate-800 flex justify-between items-center">
                  <h3 className="text-xl font-bold text-white">Tier Configuration Manager</h3>
-                 <button onClick={() => setIsEditing(false)} className="text-slate-500 hover:text-white transition-colors">
+                 <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-colors">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                  </button>
               </div>
@@ -130,6 +136,7 @@ const SubscriptionPlans: React.FC = () => {
                          type="text" 
                          className="w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500" 
                          value={currentPlan.name} 
+                         placeholder="Misal: Sumatra Expansion"
                          onChange={e => setCurrentPlan({...currentPlan, name: e.target.value})}
                        />
                     </div>
@@ -166,10 +173,21 @@ const SubscriptionPlans: React.FC = () => {
                     </div>
                  </div>
 
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Description</label>
+                    <textarea 
+                      className="w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500" 
+                      value={currentPlan.description} 
+                      rows={2}
+                      placeholder="Deskripsi singkat paket..."
+                      onChange={e => setCurrentPlan({...currentPlan, description: e.target.value})}
+                    />
+                 </div>
+
                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest border-b border-slate-800 pb-2">Usage Limits</h4>
+                    <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest border-b border-slate-800 pb-2">Usage Limits</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                       {Object.keys(currentPlan.limits!).map(key => (
+                       {Object.keys(currentPlan.limits || {}).map(key => (
                          <div key={key} className="space-y-1">
                             <label className="text-[8px] font-black text-slate-500 uppercase">{key}</label>
                             <input 
@@ -184,7 +202,7 @@ const SubscriptionPlans: React.FC = () => {
                  </div>
 
                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest border-b border-slate-800 pb-2">Feature Matrix</h4>
+                    <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest border-b border-slate-800 pb-2">Feature Matrix</h4>
                     <div className="flex flex-wrap gap-4">
                        <label className="flex items-center gap-3 p-4 bg-slate-950/50 border border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-500 transition-all">
                           <input 

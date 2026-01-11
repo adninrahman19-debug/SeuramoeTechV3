@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import SupportService from '../../services/SupportService';
 import AuthService from '../../auth/AuthService';
@@ -19,20 +20,22 @@ const NewComplaint: React.FC<NewComplaintProps> = ({ onSuccess, onCancel }) => {
     e.preventDefault();
     if (!subject || !message) return alert("Mohon lengkapi subjek dan pesan keluhan.");
     
-    setIsSubmitting(true);
-    setTimeout(() => {
-      SupportService.createComplaint({
-        storeId: 's1',
-        storeName: 'Aceh Tech Center',
-        customerName: user?.fullName || 'Anonymous',
-        subject,
-        message,
-        severity: category
-      });
-      setIsSubmitting(false);
-      alert("Keluhan Anda telah kami terima dan akan segera ditindaklanjuti.");
-      onSuccess();
-    }, 1000);
+    if (confirm("Kirim keluhan ini ke tim dukungan SeuramoeTech? Kami akan merespons dalam waktu maksimal 24 jam kerja.")) {
+      setIsSubmitting(true);
+      setTimeout(() => {
+        SupportService.createComplaint({
+          storeId: 's1',
+          storeName: 'Aceh Tech Center',
+          customerName: user?.fullName || 'Anonymous',
+          subject,
+          message,
+          severity: category
+        });
+        setIsSubmitting(false);
+        alert("Keluhan Anda telah kami terima dan akan segera ditindaklanjuti. Cek email atau WhatsApp Anda secara berkala.");
+        onSuccess();
+      }, 1000);
+    }
   };
 
   return (

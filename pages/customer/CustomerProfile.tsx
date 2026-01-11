@@ -23,24 +23,46 @@ const CustomerProfile: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
     setAddresses(ProfileService.getAddresses());
     setPayments(ProfileService.getPaymentMethods());
     setSessions(ProfileService.getLoginSessions());
     setPrivacy(ProfileService.getPrivacySettings());
-  }, []);
+  };
 
   if (!user) return null;
 
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Profil berhasil diperbarui!");
+    if (confirm("Simpan perubahan profil Anda?")) {
+      alert("Profil berhasil diperbarui!");
+    }
+  };
+
+  const handleRemoveAddress = (id: string, label: string) => {
+    if (confirm(`Hapus alamat "${label}" dari daftar pengiriman Anda?`)) {
+      ProfileService.deleteAddress(id);
+      alert("Alamat dihapus.");
+      loadData();
+    }
+  };
+
+  const handleRemovePayment = (id: string, provider: string) => {
+    if (confirm(`Hapus metode pembayaran "${provider}"?`)) {
+      ProfileService.deletePaymentMethod(id);
+      alert("Metode pembayaran dihapus.");
+      loadData();
+    }
   };
 
   const handleLogoutAll = () => {
-    if (confirm("Keluarkan semua perangkat lain? Anda akan tetap masuk di perangkat ini.")) {
+    if (confirm("PERINGATAN KEAMANAN: Keluarkan semua perangkat lain? Anda akan tetap masuk di perangkat ini. Sesi di HP atau laptop lain akan segera berakhir.")) {
       ProfileService.logoutAllOtherDevices();
-      setSessions(ProfileService.getLoginSessions());
-      alert("Sesi di perangkat lain telah dihentikan.");
+      loadData();
+      alert("Seluruh sesi di perangkat lain telah dihentikan.");
     }
   };
 
@@ -53,16 +75,18 @@ const CustomerProfile: React.FC = () => {
   };
 
   const handleDownloadData = () => {
-    if (confirm("Unduh seluruh data pribadi Anda dalam format JSON?")) {
+    if (confirm("Unduh seluruh data pribadi Anda dalam format JSON? Data ini mencakup riwayat pesanan, alamat, dan preferensi privasi Anda.")) {
       ProfileService.exportPersonalData();
     }
   };
 
   const handleDeleteRequest = () => {
     if (!deleteReason) return alert("Mohon berikan alasan penghapusan.");
-    ProfileService.requestAccountDeletion(deleteReason);
-    setConfirmDelete(false);
-    setDeleteReason('');
+    if (confirm("PERINGATAN AKHIR: Apakah Anda yakin ingin mengajukan penghapusan akun? Seluruh poin loyalty dan riwayat transaksi Anda akan dianonimkan secara permanen.")) {
+      ProfileService.requestAccountDeletion(deleteReason);
+      setConfirmDelete(false);
+      setDeleteReason('');
+    }
   };
 
   return (
@@ -159,7 +183,7 @@ const CustomerProfile: React.FC = () => {
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                          <button className="p-2 text-slate-500 hover:text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth={2}/></svg></button>
-                         <button onClick={() => { if(confirm('Hapus alamat ini?')) { ProfileService.deleteAddress(addr.id); setAddresses(ProfileService.getAddresses()); } }} className="p-2 text-slate-500 hover:text-rose-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth={2}/></svg></button>
+                         <button onClick={() => handleRemoveAddress(addr.id, addr.label)} className="p-2 text-slate-500 hover:text-rose-500 transition-all"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth={2}/></svg></button>
                       </div>
                    </div>
                    <p className="text-sm font-bold text-white mb-1">{addr.receiverName}</p>
@@ -192,7 +216,7 @@ const CustomerProfile: React.FC = () => {
                    </div>
                    <div className="mt-8 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <button className="text-[9px] font-black text-indigo-400 uppercase tracking-widest hover:text-white">Atur Default</button>
-                      <button className="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:text-white">Hapus</button>
+                      <button onClick={() => handleRemovePayment(pm.id, pm.provider)} className="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:text-white transition-all">Hapus</button>
                    </div>
                 </div>
               ))}
@@ -246,7 +270,9 @@ const CustomerProfile: React.FC = () => {
                              </td>
                              <td className="px-8 py-4 text-right">
                                 <p className="text-xs font-bold text-white">{sess.lastActive}</p>
-                                <button className="text-[9px] font-black text-rose-500 uppercase mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Keluarkan</button>
+                                {!sess.isCurrent && (
+                                   <button onClick={() => { if(confirm('Hentikan sesi di perangkat ini?')) alert('Sesi dihentikan.'); }} className="text-[9px] font-black text-rose-500 uppercase mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Keluarkan</button>
+                                )}
                              </td>
                           </tr>
                        ))}
@@ -321,7 +347,7 @@ const CustomerProfile: React.FC = () => {
                       <div className="space-y-2">
                          <label className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Alasan Penghapusan</label>
                          <textarea 
-                           className="w-full bg-slate-950 border border-rose-500/30 rounded-xl p-4 text-xs text-white outline-none"
+                           className="w-full bg-slate-950 border border-rose-500/30 rounded-xl p-4 text-xs text-white outline-none focus:ring-1 focus:ring-rose-500"
                            rows={3}
                            placeholder="Mengapa Anda ingin pergi?"
                            value={deleteReason}

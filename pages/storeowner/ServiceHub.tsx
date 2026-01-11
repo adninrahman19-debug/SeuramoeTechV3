@@ -60,19 +60,23 @@ const ServiceHub: React.FC = () => {
   };
 
   const saveTicket = () => {
-    if (drawerMode === 'create_ticket') {
-      SupportService.createTicket(ticketForm as SupportTicket);
-    } else if (selectedTicket) {
-      SupportService.updateTicket(selectedTicket.id, ticketForm);
+    if (confirm("Simpan perubahan tiket servis ini? Data teknisi dan status akan segera diperbarui.")) {
+      if (drawerMode === 'create_ticket') {
+        SupportService.createTicket(ticketForm as SupportTicket);
+      } else if (selectedTicket) {
+        SupportService.updateTicket(selectedTicket.id, ticketForm);
+      }
+      setIsDrawerOpen(false);
+      loadData();
     }
-    setIsDrawerOpen(false);
-    loadData();
   };
 
   const saveWarranty = () => {
-    SupportService.registerWarranty(warrantyForm as WarrantyRegistration);
-    setIsDrawerOpen(false);
-    loadData();
+    if (confirm("Daftarkan unit ke sistem garansi regional? IMEI akan diverifikasi otomatis oleh node Sumatra.")) {
+      SupportService.registerWarranty(warrantyForm as WarrantyRegistration);
+      setIsDrawerOpen(false);
+      loadData();
+    }
   };
 
   const filteredTickets = filter === 'ALL' ? tickets : tickets.filter(t => t.status === filter);

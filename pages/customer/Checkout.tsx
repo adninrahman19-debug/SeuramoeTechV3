@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import CartService from '../../services/CartService';
 import StoreService from '../../services/StoreService';
@@ -23,9 +24,12 @@ const Checkout: React.FC = () => {
   ];
 
   const handlePlaceOrder = () => {
-    alert("Pesanan Berhasil! Menunggu verifikasi pembayaran oleh Node Sumatra-01.");
-    CartService.clearCart();
-    window.location.href = '#'; // In real app, route to order success
+    const store = stores.find(s => s.id === selectedStore);
+    if (confirm(`KONFIRMASI PESANAN: \nNode Toko: ${store?.name} \nMetode: ${paymentMethod.toUpperCase()} \nTotal: Rp ${totals.subtotal.toLocaleString()} \n\nLanjutkan pemesanan?`)) {
+      alert("Pesanan Berhasil! Menunggu verifikasi pembayaran oleh Node Sumatra-01. Cek WhatsApp Anda untuk detail struk digital.");
+      CartService.clearCart();
+      window.location.href = '#'; // In real app, route to order success
+    }
   };
 
   const totals = CartService.getTotals();
@@ -71,7 +75,7 @@ const Checkout: React.FC = () => {
                         key={s.id} 
                         onClick={() => setSelectedStore(s.id)}
                         className={`p-6 rounded-[2rem] border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                           selectedStore === s.id ? 'bg-indigo-600/10 border-indigo-600 ring-4 ring-indigo-600/5' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                           selectedStore === s.id ? 'bg-indigo-600/10 border-indigo-600 ring-4 ring-indigo-600/5' : 'bg-slate-950 border border-slate-800 hover:border-slate-700'
                         }`}
                      >
                         <div className="flex justify-between items-start mb-6">
@@ -123,7 +127,7 @@ const Checkout: React.FC = () => {
                            <h5 className="text-sm font-black text-white uppercase tracking-widest">{pm.name}</h5>
                            <p className="text-[10px] text-slate-500 mt-1">{pm.desc}</p>
                         </div>
-                        {paymentMethod === pm.id && <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" strokeWidth={4}/></svg></div>}
+                        {paymentMethod === pm.id && <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path d="M5 13l4 4L19 7" /></svg></div>}
                      </label>
                    ))}
                 </div>

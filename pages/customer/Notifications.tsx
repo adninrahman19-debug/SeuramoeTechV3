@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import NotificationService, { AppNotification, NotificationType } from '../../services/NotificationService';
 import { ICONS } from '../../constants';
@@ -27,6 +28,20 @@ const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleMarkAllRead = () => {
+    if (confirm("Tandai seluruh pesan Anda sebagai terbaca?")) {
+      NotificationService.markAllAsRead();
+      alert("Semua notifikasi ditandai terbaca.");
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Hapus notifikasi ini secara permanen dari ledger Anda?")) {
+      NotificationService.deleteNotification(id);
+      alert("Notifikasi dihapus.");
+    }
+  };
+
   const getTypeStyle = (type: NotificationType) => {
     switch (type) {
       case NotificationType.ORDER: return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
@@ -53,7 +68,7 @@ const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
     <div className="space-y-8 animate-in slide-in-from-right-4 duration-500 pb-24">
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-2xl w-fit shadow-xl overflow-x-auto max-w-full">
+        <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-2xl w-fit shadow-xl overflow-x-auto max-w-full no-scrollbar">
            <button onClick={() => setFilter('ALL')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === 'ALL' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Semua</button>
            <button onClick={() => setFilter(NotificationType.ORDER)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === NotificationType.ORDER ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Pesanan</button>
            <button onClick={() => setFilter(NotificationType.SERVICE)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === NotificationType.SERVICE ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Servis</button>
@@ -61,7 +76,7 @@ const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
         </div>
         
         <button 
-          onClick={() => NotificationService.markAllAsRead()}
+          onClick={handleMarkAllRead}
           className="text-[10px] font-black text-indigo-400 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"
         >
            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M5 13l4 4L19 7" /></svg>
@@ -98,7 +113,7 @@ const Notifications: React.FC<NotificationsProps> = ({ onNavigate }) => {
               <div className="flex items-center gap-3 shrink-0">
                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>}
                  <button 
-                   onClick={(e) => { e.stopPropagation(); NotificationService.deleteNotification(n.id); }}
+                   onClick={(e) => { e.stopPropagation(); handleDelete(n.id); }}
                    className="p-2 text-slate-700 hover:text-rose-500 transition-colors"
                  >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth={2}/></svg>

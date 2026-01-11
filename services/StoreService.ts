@@ -19,7 +19,8 @@ class StoreService {
           staffLimit: 10,
           createdAt: '2023-01-15T08:00:00Z',
           totalSales: 1250000000,
-          violationCount: 0
+          violationCount: 0,
+          isFeatured: true
         },
         {
           id: 's2',
@@ -32,7 +33,8 @@ class StoreService {
           staffLimit: 3,
           createdAt: '2023-06-20T10:30:00Z',
           totalSales: 450000000,
-          violationCount: 1
+          violationCount: 1,
+          isFeatured: false
         }
       ];
       localStorage.setItem(this.STORES_KEY, JSON.stringify(initialStores));
@@ -44,33 +46,40 @@ class StoreService {
     return JSON.parse(localStorage.getItem(this.STORES_KEY) || '[]');
   }
 
+  static addStore(store: Omit<Store, 'id' | 'createdAt' | 'violationCount' | 'totalSales'>) {
+    const stores = this.getAllStores();
+    const newStore: Store = {
+      ...store,
+      id: 's' + (stores.length + 1),
+      createdAt: new Date().toISOString(),
+      violationCount: 0,
+      totalSales: 0
+    };
+    const updated = [...stores, newStore];
+    localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
+    return newStore;
+  }
+
+  static updateStore(id: string, updates: Partial<Store>) {
+    const stores = this.getAllStores();
+    const updated = stores.map(s => s.id === id ? { ...s, ...updates } : s);
+    localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
+  }
+
+  static deleteStore(id: string) {
+    const stores = this.getAllStores();
+    const filtered = stores.filter(s => s.id !== id);
+    localStorage.setItem(this.STORES_KEY, JSON.stringify(filtered));
+  }
+
   static updateStoreStatus(storeId: string, status: 'active' | 'suspended') {
-    const stores = this.getAllStores();
-    const updated = stores.map(s => s.id === storeId ? { ...s, status } : s);
-    localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
-  }
-
-  static overrideLimits(storeId: string, productLimit: number, staffLimit: number) {
-    const stores = this.getAllStores();
-    const updated = stores.map(s => s.id === storeId ? { ...s, productLimit, staffLimit } : s);
-    localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
-  }
-
-  static changeOwner(storeId: string, newOwnerId: string) {
-    const stores = this.getAllStores();
-    const updated = stores.map(s => s.id === storeId ? { ...s, ownerId: newOwnerId } : s);
-    localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
+    this.updateStore(storeId, { status });
   }
 
   static addViolation(storeId: string) {
     const stores = this.getAllStores();
     const updated = stores.map(s => s.id === storeId ? { ...s, violationCount: (s.violationCount || 0) + 1 } : s);
     localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
-  }
-
-  static resetStoreData(storeId: string) {
-    // In demo, we just alert. In production, this would wipe related DB records.
-    alert(`Data untuk Toko ${storeId} telah di-reset ke pengaturan pabrik.`);
   }
 }
 

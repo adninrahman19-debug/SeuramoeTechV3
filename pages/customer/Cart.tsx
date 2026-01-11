@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import CartService, { CartItem } from '../../services/CartService';
 import PromoService from '../../services/PromoService';
@@ -40,6 +41,12 @@ const Cart: React.FC<CartProps> = ({ onProceedToCheckout }) => {
       }
     } else {
       setError("Kode voucher tidak valid.");
+    }
+  };
+
+  const handleRemove = (id: string, name: string) => {
+    if (confirm(`Hapus "${name}" dari keranjang?`)) {
+      CartService.removeFromCart(id);
     }
   };
 
@@ -86,7 +93,7 @@ const Cart: React.FC<CartProps> = ({ onProceedToCheckout }) => {
                       <span className="text-sm font-black text-white w-6 text-center">{item.quantity}</span>
                       <button onClick={() => CartService.updateQuantity(item.id, 1)} className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-800 hover:text-white transition-all font-bold">+</button>
                    </div>
-                   <button onClick={() => CartService.removeFromCart(item.id)} className="p-2 text-slate-600 hover:text-rose-500 transition-colors">
+                   <button onClick={() => handleRemove(item.id, item.name)} className="p-2 text-slate-600 hover:text-rose-500 transition-colors">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth={2}/></svg>
                    </button>
                 </div>

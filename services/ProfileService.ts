@@ -60,6 +60,20 @@ class ProfileService {
     localStorage.setItem(this.PAYMENTS_KEY + this.getUserId(), JSON.stringify(methods));
   }
 
+  static addPaymentMethod(method: Omit<PaymentMethod, 'id'>) {
+    const methods = this.getPaymentMethods();
+    const newPm = { ...method, id: 'pm-' + Date.now() };
+    if (newPm.isDefault) {
+      methods.forEach(m => m.isDefault = false);
+    }
+    this.savePaymentMethods([...methods, newPm]);
+  }
+
+  static deletePaymentMethod(id: string) {
+    const methods = this.getPaymentMethods().filter(m => m.id !== id);
+    this.savePaymentMethods(methods);
+  }
+
   static getLoginSessions(): LoginSession[] {
     const data = localStorage.getItem(this.SESSIONS_KEY + this.getUserId());
     if (!data) {
@@ -84,7 +98,6 @@ class ProfileService {
     this.saveSessions(current);
   }
 
-  // Privacy & Data Methods
   static getPrivacySettings(): PrivacySettings {
     const data = localStorage.getItem(this.PRIVACY_KEY + this.getUserId());
     if (!data) {
@@ -127,9 +140,8 @@ class ProfileService {
   }
 
   static requestAccountDeletion(reason: string) {
-    // In a real app, this would send a request to the Super Admin queue
     console.log("Account deletion requested:", { userId: this.getUserId(), reason, timestamp: new Date().toISOString() });
-    alert("Permintaan penghapusan akun telah dikirim. Tim kepatuhan SeuramoeTech akan meninjau permintaan Anda dalam 7 hari kerja.");
+    alert("Permintaan penghapusan akun telah dikirim ke platform HQ. Tim kepatuhan SeuramoeTech akan meninjau permintaan Anda dalam 7 hari kerja.");
   }
 }
 

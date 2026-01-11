@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ReviewService from '../../services/ReviewService';
 import AuthService from '../../auth/AuthService';
@@ -34,16 +35,19 @@ const ReviewsAndRatings: React.FC = () => {
 
   const handleAddReview = () => {
     if (!newComment) return alert("Komentar tidak boleh kosong.");
-    ReviewService.addReview({
-      storeId: 's1',
-      customerName: user?.fullName || 'User',
-      rating: newRating,
-      comment: newComment,
-      productName: 'Layanan Servis & Pembelian'
-    });
-    setNewComment('');
-    setNewRating(5);
-    setShowForm(false);
+    if (confirm("Publikasikan ulasan Anda ke komunitas SeuramoeTech?")) {
+      ReviewService.addReview({
+        storeId: 's1',
+        customerName: user?.fullName || 'User',
+        rating: newRating,
+        comment: newComment,
+        productName: 'Layanan Servis & Pembelian'
+      });
+      setNewComment('');
+      setNewRating(5);
+      setShowForm(false);
+      alert("Terima kasih! Ulasan Anda telah dipublikasikan.");
+    }
   };
 
   const handleStartEdit = (r: Review) => {
@@ -53,13 +57,17 @@ const ReviewsAndRatings: React.FC = () => {
   };
 
   const handleUpdate = (id: string) => {
-    ReviewService.updateReview(id, editComment, editRating);
-    setIsEditing(null);
+    if (confirm("Simpan perubahan pada ulasan ini?")) {
+      ReviewService.updateReview(id, editComment, editRating);
+      setIsEditing(null);
+      alert("Ulasan diperbarui.");
+    }
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Hapus ulasan ini secara permanen?")) {
+    if (confirm("Hapus ulasan ini secara permanen? Tindakan ini tidak dapat dibatalkan.")) {
       ReviewService.deleteReview(id);
+      alert("Ulasan telah dihapus.");
     }
   };
 
@@ -109,7 +117,7 @@ const ReviewsAndRatings: React.FC = () => {
                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Komentar & Masukan</label>
                  <textarea 
                    rows={4} 
-                   className="w-full px-5 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm italic"
+                   className="w-full px-5 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm italic"
                    placeholder="Bagaimana kualitas produk dan layanan kami?"
                    value={newComment}
                    onChange={e => setNewComment(e.target.value)}

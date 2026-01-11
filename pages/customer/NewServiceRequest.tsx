@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import StoreService from '../../services/StoreService';
 import SupportService from '../../services/SupportService';
@@ -33,19 +34,21 @@ const NewServiceRequest: React.FC<NewServiceRequestProps> = ({ onSuccess, onCanc
 
   const handleSubmit = () => {
     const store = stores.find(s => s.id === selectedStore);
-    SupportService.createTicket({
-      storeId: selectedStore,
-      storeName: store?.name || 'Sumatra Node',
-      customerName: user?.fullName || 'Anonymous',
-      customerEmail: user?.email,
-      deviceModel: deviceModel,
-      issueDescription: issue,
-      status: SupportStatus.OPEN,
-      priority: 'MEDIUM',
-      slaDeadline: new Date(Date.now() + 172800000).toISOString(), // Default 48h
-    });
-    alert("Permintaan servis berhasil diajukan. Silakan bawa unit Anda ke toko sesuai jadwal.");
-    onSuccess();
+    if (confirm(`Konfirmasi pengajuan servis unit ${deviceModel} di ${store?.name}?`)) {
+      SupportService.createTicket({
+        storeId: selectedStore,
+        storeName: store?.name || 'Sumatra Node',
+        customerName: user?.fullName || 'Anonymous',
+        customerEmail: user?.email,
+        deviceModel: deviceModel,
+        issueDescription: issue,
+        status: SupportStatus.OPEN,
+        priority: 'MEDIUM',
+        slaDeadline: new Date(Date.now() + 172800000).toISOString(), // Default 48h
+      });
+      alert("Permintaan servis berhasil diajukan. Silakan bawa unit Anda ke toko sesuai jadwal.");
+      onSuccess();
+    }
   };
 
   return (
