@@ -69,7 +69,9 @@ export enum WarrantyStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  SUSPICIOUS = 'SUSPICIOUS'
+  SUSPICIOUS = 'SUSPICIOUS',
+  IN_REPAIR = 'IN_REPAIR',
+  REPLACED = 'REPLACED'
 }
 
 export interface StoreConfig {
@@ -352,6 +354,10 @@ export interface SupportTicket {
   estimatedCost?: number;
   actualCost?: number;
   customerEmail?: string;
+  // Documentation Fields
+  technicalNotes?: string;
+  beforeImage?: string;
+  afterImage?: string;
 }
 
 export interface WarrantyClaim {
@@ -364,6 +370,14 @@ export interface WarrantyClaim {
   status: WarrantyStatus;
   abuseRiskScore: number;
   createdAt: string;
+  // Technical Inspection Fields
+  technicalAnalysis?: string;
+  isManufacturerFault?: boolean;
+  isHumanErrorDetected?: boolean;
+  inspectionNotes?: string;
+  recommendation?: string;
+  inspectedAt?: string;
+  inspectedBy?: string;
 }
 
 export interface CustomerComplaint {

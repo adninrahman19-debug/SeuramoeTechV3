@@ -1,4 +1,3 @@
-
 import { Order, SupportTicket, StockHistory, Product } from '../types';
 import OrderService from './OrderService';
 import SupportService from './SupportService';
@@ -13,13 +12,25 @@ export interface ReportSummary {
 
 class ReportingService {
   static getSalesReport(storeId: string, duration: 'daily' | 'weekly' | 'monthly' | 'yearly') {
-    // In a real app, this would query a backend with date filters
     return [
       { date: '2024-01', sales: 45000000, orders: 120 },
       { date: '2024-02', sales: 52000000, orders: 145 },
       { date: '2024-03', sales: 48000000, orders: 130 },
       { date: '2024-04', sales: 61000000, orders: 160 },
     ];
+  }
+
+  static getStaffDailySummary(storeId: string) {
+    // Mock data based on current context
+    return {
+      salesTotal: 12450000,
+      salesCount: 8,
+      repairsResolved: 5,
+      newTickets: 3,
+      cashOnHand: 4250000,
+      inventoryChanges: 12,
+      activeShiftTime: '06:45:12'
+    };
   }
 
   static getStockAnalytics(storeId: string) {

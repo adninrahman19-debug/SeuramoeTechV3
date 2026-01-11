@@ -1,4 +1,3 @@
-
 import { SupportTicket, WarrantyClaim, CustomerComplaint, SupportStatus, WarrantyStatus, WarrantyRegistration } from '../types';
 
 class SupportService {
@@ -28,6 +27,20 @@ class SupportService {
           createdAt: new Date(Date.now() - 172800000).toISOString(),
           slaDeadline: new Date(Date.now() - 3600000).toISOString(),
           estimatedCost: 850000
+        },
+        {
+          id: 'T-7701', storeId: 's1', storeName: 'Aceh Tech Center',
+          customerName: 'Teuku Ryan', deviceModel: 'Asus TUF Gaming F15',
+          issueDescription: 'Thermal throttling & Fan noise.',
+          status: SupportStatus.RESOLVED, priority: 'MEDIUM',
+          technicianName: 'Budi Santoso',
+          createdAt: new Date(Date.now() - 432000000).toISOString(),
+          slaDeadline: new Date(Date.now() - 345600000).toISOString(),
+          estimatedCost: 450000,
+          actualCost: 450000,
+          technicalNotes: 'Pembersihan heatsink mendalam, ganti thermal paste (Arctic MX-4). Kipas kiri dibersihkan dari debu keras.',
+          beforeImage: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?q=80&w=200',
+          afterImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=200'
         }
       ];
       localStorage.setItem(this.TICKETS_KEY, JSON.stringify(initialTickets));
@@ -107,6 +120,12 @@ class SupportService {
     return JSON.parse(localStorage.getItem(this.REGISTRATIONS_KEY) || '[]').filter((r: WarrantyRegistration) => r.storeId === storeId);
   }
 
+  static getRegistrationByImei(imei: string): WarrantyRegistration | undefined {
+    this.init();
+    const all: WarrantyRegistration[] = JSON.parse(localStorage.getItem(this.REGISTRATIONS_KEY) || '[]');
+    return all.find(r => r.serialNumber === imei);
+  }
+
   static registerWarranty(reg: Omit<WarrantyRegistration, 'id'>) {
     const all = JSON.parse(localStorage.getItem(this.REGISTRATIONS_KEY) || '[]');
     const newReg = { ...reg, id: 'REG-' + Date.now() };
@@ -118,10 +137,14 @@ class SupportService {
     return JSON.parse(localStorage.getItem(this.WARRANTIES_KEY) || '[]');
   }
 
-  static updateWarrantyStatus(id: string, status: WarrantyStatus) {
+  static updateWarranty(id: string, updates: Partial<WarrantyClaim>) {
     const warranties = this.getWarranties();
-    const updated = warranties.map(w => w.id === id ? { ...w, status } : w);
+    const updated = warranties.map(w => w.id === id ? { ...w, ...updates } : w);
     localStorage.setItem(this.WARRANTIES_KEY, JSON.stringify(updated));
+  }
+
+  static updateWarrantyStatus(id: string, status: WarrantyStatus) {
+    this.updateWarranty(id, { status });
   }
 
   static getComplaints(storeId?: string): CustomerComplaint[] {
