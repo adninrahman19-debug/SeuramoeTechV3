@@ -243,7 +243,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
       <div className="hidden lg:flex w-1/2 p-20 flex-col justify-between relative z-10 border-r border-white/5">
         <Logo size="lg" />
         <div className="space-y-12">
-          <div className="inline-flex items-center gap-3 px-5 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+          <div className="inline-flex items-center gap-3 px-5 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full mx-auto lg:mx-0">
             <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-4">Node Regional Sumatra v2.5</span>
           </div>
@@ -356,6 +356,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                        { name: 'Pelanggan', user: 'customer001', pass: 'Customer@123', color: 'violet', icon: '👤' },
                        { name: 'Staf Admin', user: 'admin_toko1', pass: 'Admin@123', color: 'blue', icon: '🛠️' },
                        { name: 'Teknisi', user: 'tech_toko1', pass: 'Tech@123', color: 'amber', icon: '🔧' },
+                       { name: 'Marketing', user: 'marketing_toko1', pass: 'Market@123', color: 'violet', icon: '📢' },
                      ].map(acc => (
                        <button 
                          key={acc.user} 

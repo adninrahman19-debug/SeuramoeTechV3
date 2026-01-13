@@ -4,6 +4,7 @@ import { UserRole } from '../../types';
 import { ICONS } from '../../constants';
 import AuthService from '../../auth/AuthService';
 import GlobalSearch from '../Shared/GlobalSearch';
+import QuickAccessHub from '../Shared/QuickAccessHub';
 import Logo from '../Shared/Logo';
 import CartService from '../../services/CartService';
 import NotificationService from '../../services/NotificationService';
@@ -30,16 +31,25 @@ const Shell: React.FC<ShellProps> = ({ children, onLogout, activeTab, onNavigate
   const user = AuthService.getCurrentUser();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isQuickHubOpen, setQuickHubOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // CMD/CTRL + K for Quick Search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        setSearchOpen(prev => !prev);
+        e.preventDefault();
+        setQuickHubOpen(prev => !prev);
+      }
+      // CMD/CTRL + J for Omnibar (legacy support)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+        e.preventDefault();
+        setQuickHubOpen(prev => !prev);
       }
       if (e.key === 'Escape') {
         setSearchOpen(false);
+        setQuickHubOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -279,6 +289,7 @@ const Shell: React.FC<ShellProps> = ({ children, onLogout, activeTab, onNavigate
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 flex flex-col md:flex-row">
       <GlobalSearch isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
+      <QuickAccessHub isOpen={isQuickHubOpen} onClose={() => setQuickHubOpen(false)} user={user as any} onNavigate={onNavigate} />
       
       {/* Sidebar Navigation */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-950 border-r border-slate-900 transition-all duration-300 flex flex-col sticky top-0 h-screen z-40 ${isCustomer ? 'hidden md:flex' : 'flex'}`}>
@@ -292,6 +303,18 @@ const Shell: React.FC<ShellProps> = ({ children, onLogout, activeTab, onNavigate
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
+          {/* Quick Access Sidebar Item */}
+          <div className="space-y-2">
+            <button
+              onClick={() => setQuickHubOpen(true)}
+              className={`w-full flex items-center gap-3 px-3 py-4 rounded-2xl transition-all relative bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-600 hover:text-white group`}
+            >
+              <div className="shrink-0 group-hover:animate-pulse"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
+              {isSidebarOpen && <span className="text-xs font-black uppercase tracking-widest">Command Center</span>}
+              {isSidebarOpen && <span className="ml-auto text-[8px] bg-slate-900/50 px-1 py-0.5 rounded text-slate-500">⌘K</span>}
+            </button>
+          </div>
+
           {navGroups.map((group) => (
             <div key={group.groupName} className="space-y-2">
               {isSidebarOpen && <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] px-2">{group.groupName}</p>}
@@ -331,9 +354,9 @@ const Shell: React.FC<ShellProps> = ({ children, onLogout, activeTab, onNavigate
               <ICONS.Dashboard className="w-6 h-6" />
               <span className="text-[8px] font-black uppercase tracking-tighter">Beranda</span>
            </button>
-           <button onClick={() => onNavigate('smart')} className={`flex flex-col items-center gap-1 shrink-0 px-2 ${activeTab === 'smart' ? 'text-indigo-500' : 'text-slate-600'}`}>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeWidth={2}/></svg>
-              <span className="text-[8px] font-black uppercase tracking-tighter">AI Hub</span>
+           <button onClick={() => setQuickHubOpen(true)} className={`flex flex-col items-center gap-1 shrink-0 px-2 text-indigo-400`}>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <span className="text-[8px] font-black uppercase tracking-tighter">Aksi</span>
            </button>
            <button onClick={() => onNavigate('marketplace')} className={`flex flex-col items-center gap-1 shrink-0 px-2 ${activeTab === 'marketplace' ? 'text-indigo-500' : 'text-slate-600'}`}>
               <ICONS.Store className="w-6 h-6" />
@@ -377,6 +400,13 @@ const Shell: React.FC<ShellProps> = ({ children, onLogout, activeTab, onNavigate
           </div>
           
           <div className="flex items-center gap-6">
+             <button 
+                onClick={() => setQuickHubOpen(true)}
+                className="hidden lg:flex items-center gap-2 px-4 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+             >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                Quick Action <span className="ml-2 text-slate-700">⌘K</span>
+             </button>
              <button 
                 onClick={() => onNavigate('notifications')}
                 className="relative p-2 text-slate-500 hover:text-white transition-colors"
