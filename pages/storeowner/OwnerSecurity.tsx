@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import SecurityService from '../../services/SecurityService';
 import StaffService from '../../services/StaffService';
@@ -19,7 +18,8 @@ const OwnerSecurity: React.FC = () => {
   }, []);
 
   const loadData = () => {
-    setSessions(SecurityService.getActiveSessions(user?.storeId));
+    // Fix: SecurityService.getActiveSessions expects 0 arguments, but was passed user?.storeId
+    setSessions(SecurityService.getActiveSessions());
     setLogs(SecurityService.getLogs()); // Simplified for demo
     if (user?.storeId) {
       setStaff(StaffService.getStoreStaff(user.storeId));
@@ -198,7 +198,7 @@ const OwnerSecurity: React.FC = () => {
                               </td>
                               <td className="px-6 py-4">
                                  <p className="text-xs text-indigo-400 font-bold">{log.userName}</p>
-                                 <p className="text-[9px] text-slate-600">{log.ip}</p>
+                                 <p className="text-[9px] text-slate-600">ID: {log.userId}</p>
                               </td>
                               <td className="px-6 py-4">
                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${

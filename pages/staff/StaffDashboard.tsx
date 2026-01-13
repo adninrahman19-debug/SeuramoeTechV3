@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import AuthService from '../../auth/AuthService.ts';
 import { UserRole } from '../../types.ts';
-import PersonalMetrics from './PersonalMetrics.tsx';
-import TaskQueue from './TaskQueue.tsx';
 import StaffAdminOverview from './StaffAdminOverview.tsx';
 import StaffPayments from './StaffPayments.tsx';
 import StaffOrderManager from './StaffOrderManager.tsx';
@@ -25,7 +23,6 @@ import MarketingEngagement from './MarketingEngagement.tsx';
 import MarketingReports from './MarketingReports.tsx';
 import StaffSecurityPolicy from './StaffSecurityPolicy.tsx';
 import NotificationHub from '../../components/Shared/NotificationHub.tsx';
-import { ICONS } from '../../constants.tsx';
 
 interface StaffDashboardProps {
   activeTab: string;
@@ -35,6 +32,7 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
   const user = AuthService.getCurrentUser();
   const [internalTab, setInternalTab] = useState(activeTab || 'overview');
   
+  // Bug Fix: Sync internalTab strictly when activeTab prop changes
   useEffect(() => {
     if (activeTab) {
       setInternalTab(activeTab);
@@ -64,7 +62,6 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
     if (isTechnician) {
       switch (internalTab) {
         case 'overview': return <TechnicianOverview />;
-        case 'tasks': return <TaskQueue isTechnician={true} />;
         case 'tickets': return <TechnicianTicketManager />;
         case 'inventory': return <StaffInventoryManager />;
         case 'history': return <TechnicianHistory />;
@@ -88,7 +85,7 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
         default: return <MarketingOverview />;
       }
     }
-    return <div>Halaman sedang dalam pengembangan.</div>;
+    return <div>Modul sedang dalam pemeliharaan node.</div>;
   };
 
   const adminTabs = [
@@ -126,17 +123,17 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ activeTab }) => {
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pb-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">Terminal Ops: {user?.fullName.split(' ')[0]}</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Terminal Ops: {user?.fullName.split(' ')[0]}</h1>
           <p className="text-slate-500 text-sm font-medium mt-1">Regional Sumatra Node: <span className="text-indigo-400 font-bold">Sum-N-01</span></p>
         </div>
 
         {currentTabs.length > 0 && (
-          <div className="glass-panel p-1 rounded-2xl flex flex-wrap gap-1 shadow-2xl border-slate-800 overflow-x-auto max-w-full">
+          <div className="glass-panel p-1 rounded-2xl flex flex-wrap gap-1 shadow-2xl border-slate-800 overflow-x-auto max-w-full no-scrollbar">
             {currentTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setInternalTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${internalTab === tab.id ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${internalTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
               >
                 {tab.label}
               </button>

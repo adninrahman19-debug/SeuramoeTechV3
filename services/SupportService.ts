@@ -12,7 +12,11 @@ class SupportService {
       localStorage.setItem(this.TICKETS_KEY, JSON.stringify([]));
     }
     if (!localStorage.getItem(this.REGISTRATIONS_KEY)) {
-      localStorage.setItem(this.REGISTRATIONS_KEY, JSON.stringify([]));
+      // Mock some registrations for demo users
+      const mock: WarrantyRegistration[] = [
+        { id: 'REG-1', storeId: 's1', productId: 'p-101', productName: 'Asus ROG G14', customerName: 'Ali Akbar', customerPhone: '081233334444', serialNumber: 'ROG-G14-SUM-001', purchaseDate: '2023-10-01', expiryDate: '2024-10-01', isActive: true }
+      ];
+      localStorage.setItem(this.REGISTRATIONS_KEY, JSON.stringify(mock));
     }
   }
 
@@ -41,12 +45,10 @@ class SupportService {
     window.dispatchEvent(new Event('tickets-updated'));
   }
 
-  // Add comment: Fix missing escalateTicket method
   static escalateTicket(id: string) {
     this.updateTicket(id, { status: SupportStatus.ESCALATED, priority: 'URGENT' });
   }
 
-  // Add comment: Fix missing reassignTechnician method
   static reassignTechnician(id: string, technicianName: string) {
     this.updateTicket(id, { technicianName });
   }
@@ -58,14 +60,13 @@ class SupportService {
     window.dispatchEvent(new Event('tickets-updated'));
   }
 
-  // Warranty Logic
+  // --- Warranty Logic ---
   static getWarrantyRegistrations(storeId: string): WarrantyRegistration[] {
     this.init();
     const all = JSON.parse(localStorage.getItem(this.REGISTRATIONS_KEY) || '[]');
     return all.filter((r: WarrantyRegistration) => r.storeId === storeId);
   }
 
-  // Add comment: Fix missing getRegistrationByImei method for TechnicianWarrantyManager
   static getRegistrationByImei(imei: string): WarrantyRegistration | undefined {
     const all = JSON.parse(localStorage.getItem(this.REGISTRATIONS_KEY) || '[]');
     return all.find((r: WarrantyRegistration) => r.serialNumber === imei);
@@ -79,7 +80,16 @@ class SupportService {
   }
 
   static getWarranties(): WarrantyClaim[] {
-    return JSON.parse(localStorage.getItem(this.WARRANTIES_KEY) || '[]');
+    const stored = localStorage.getItem(this.WARRANTIES_KEY);
+    if (!stored) {
+       // Mock for demo
+       const mock: WarrantyClaim[] = [
+         { id: 'CL-8821', ticketId: 'T-101', storeName: 'Aceh Tech', customerName: 'Ali Akbar', imei: 'ROG-G14-SUM-001', claimReason: 'Layar bergaris', status: WarrantyStatus.PENDING, abuseRiskScore: 12, createdAt: new Date().toISOString() }
+       ];
+       localStorage.setItem(this.WARRANTIES_KEY, JSON.stringify(mock));
+       return mock;
+    }
+    return JSON.parse(stored);
   }
 
   static updateWarranty(id: string, updates: Partial<WarrantyClaim>) {
@@ -88,7 +98,6 @@ class SupportService {
     localStorage.setItem(this.WARRANTIES_KEY, JSON.stringify(updated));
   }
 
-  // Add comment: Fix missing updateWarrantyStatus method for SupportOversight
   static updateWarrantyStatus(id: string, status: WarrantyStatus) {
     this.updateWarranty(id, { status });
   }

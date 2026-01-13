@@ -21,7 +21,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   // UI States
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [attempts, setAttempts] = useState(0);
   const [lockoutTimer, setLockoutTimer] = useState(0);
 
   // Smart Validation States
@@ -53,8 +52,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   const loginInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (mode === 'login') loginInputRef.current?.focus();
-  }, [mode]);
+    if (mode === 'login') {
+      loginInputRef.current?.focus();
+      // Check for existing lockout on mount
+      const status = SecurityService.getLockoutStatus(username);
+      if (status.isLocked) setLockoutTimer(status.remaining);
+    }
+  }, [mode, username]);
 
   useEffect(() => {
     let interval: any;
@@ -114,6 +118,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
           return;
         }
 
+        SecurityService.resetLoginAttempts(username);
+
         if (!user.isEmailVerified) {
           const otp = AuthService.sendOTP(user.email);
           setExpectedOtp(otp);
@@ -143,13 +149,12 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         logAudit(user.id, user.fullName, 'LOGIN_SUCCESS', 'INFO', 'Login berhasil dari terminal.');
         onLoginSuccess(user);
       } else {
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-        if (newAttempts >= 5) {
-          setLockoutTimer(60);
+        const lockoutStatus = SecurityService.trackLoginAttempt(username);
+        if (lockoutStatus.isLocked) {
+          setLockoutTimer(lockoutStatus.remaining);
           setError('Terlalu banyak percobaan. Terminal dikunci 60 detik.');
         } else {
-          setError(`Username atau sandi salah. Percobaan: ${newAttempts}/5`);
+          setError(`Username atau sandi salah. Percobaan: ${lockoutStatus.attempts}/5`);
         }
         setIsLoading(false);
       }
@@ -162,7 +167,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
     setTimeout(() => {
       if (otpInput === expectedOtp && pendingUser) {
         const user = AuthService.verifyEmail(pendingUser.id);
-        if (user) onLoginSuccess(user);
+        if (user) {
+          AuthService.finalizeLogin(user); // Bug Fix: Ensure session is finalized
+          onLoginSuccess(user);
+        }
       } else {
         setError('Kode OTP tidak valid.');
         setIsLoading(false);
@@ -179,8 +187,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
     setTimeout(() => {
       if (pendingUser) {
         AuthService.changePassword(pendingUser.id, password);
+        const updatedUser = AuthService.getCurrentUser()!;
+        AuthService.finalizeLogin(updatedUser); // Bug Fix: Ensure session is finalized
         logAudit(pendingUser.id, pendingUser.fullName, 'PASSWORD_HARDENING', 'INFO', 'Staf memperbarui sandi pada login pertama.');
-        onLoginSuccess(AuthService.getCurrentUser()!);
+        onLoginSuccess(updatedUser);
       }
     }, 1200);
   };
@@ -251,7 +261,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
 
       {/* RIGHT PANEL */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 relative z-10 overflow-y-auto custom-scrollbar">
-        {/* Back to Landing Button */}
         <button 
           onClick={onBack}
           className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 bg-slate-900/50 border border-white/5 hover:border-white/20 text-slate-400 hover:text-white rounded-xl transition-all group z-20"
@@ -265,7 +274,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         <div className="w-full max-w-xl space-y-8 py-10">
           <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-white/10 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
             
-            {/* TABS */}
             {(mode === 'login' || mode === 'register') && (
               <div className="flex gap-1 p-1 bg-slate-950 border border-white/5 rounded-2xl mb-10">
                 <button onClick={() => setMode('login')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'login' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:text-white'}`}>Masuk</button>
@@ -310,10 +318,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                         </button>
                       </div>
                     </div>
-                    <label className="flex items-center gap-3 px-2 cursor-pointer group">
-                      <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="w-4 h-4 rounded border-white/10 bg-slate-950 accent-indigo-600" />
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Ingat Terminal Ini</span>
-                    </label>
                   </div>
 
                   {error && <p className="text-[10px] text-rose-500 font-bold text-center bg-rose-500/5 py-3 rounded-2xl border border-rose-500/10 animate-in shake">{error}</p>}
@@ -328,7 +332,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                   </button>
                 </form>
 
-                {/* Enhanced Quick Login Access Section */}
                 <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="h-px flex-1 bg-white/5"></div>
@@ -336,7 +339,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                     <div className="h-px flex-1 bg-white/5"></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                     {/* HQ Admin Spotlight */}
                      <button 
                        onClick={() => { setUsername('superadmin'); setPassword('Super@123'); }}
                        className="col-span-2 flex items-center gap-4 p-4 bg-indigo-600/10 border border-indigo-500/30 rounded-2xl transition-all group hover:bg-indigo-600 hover:border-indigo-600"
@@ -386,7 +388,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                       <span className={`text-[9px] font-black uppercase tracking-widest ${role === UserRole.STORE_OWNER ? 'text-indigo-400' : 'text-slate-600'}`}>Pemilik Toko</span>
                     </button>
                   </div>
-                  <p className="text-[9px] text-slate-500 italic px-2">🔒 Staff tidak diperkenankan mendaftar mandiri. Akun staff diregistrasi oleh Owner melalui Command Dashboard.</p>
                 </div>
 
                 {role === UserRole.CUSTOMER ? (
@@ -447,11 +448,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                           <input type="password" className="w-full px-5 py-4 bg-slate-950 border border-white/5 rounded-2xl text-white outline-none" placeholder="Sandi" value={password} onChange={e => setPassword(e.target.value)} />
                           <input type="password" className="w-full px-5 py-4 bg-slate-950 border border-white/5 rounded-2xl text-white outline-none" placeholder="Konfirmasi" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
                         </div>
-                        <div className="flex gap-1 px-1">
-                           {[1, 2, 3, 4].map(idx => (
-                             <div key={idx} className={`h-1 flex-1 rounded-full transition-all ${idx <= passwordStrength ? getStrengthLabel().c : 'bg-slate-800'}`}></div>
-                           ))}
-                        </div>
                       </div>
                     )}
 
@@ -464,7 +460,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                           <option value="Medan">Medan (North)</option>
                           <option value="Meulaboh">Meulaboh (West)</option>
                         </select>
-                        <input type="text" className="w-full px-5 py-4 bg-slate-950 border border-white/5 rounded-2xl text-white outline-none" placeholder="WhatsApp Bisnis (0812XXX)" value={phone} onChange={e => setPhone(e.target.value)} />
                       </div>
                     )}
 
@@ -474,9 +469,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                            <div key={plan.tier} onClick={() => setSelectedTier(plan.tier)} className={`p-6 rounded-[2rem] border-2 cursor-pointer transition-all ${selectedTier === plan.tier ? 'border-indigo-600 bg-indigo-600/10' : 'border-slate-800 bg-slate-950 hover:border-slate-700'}`}>
                               <h4 className="text-sm font-black text-white uppercase">{plan.name}</h4>
                               <p className="text-lg font-black text-indigo-400 mt-2">Rp {(plan.priceMonthly/1000).toFixed(0)}k/bln</p>
-                              <div className="mt-4 space-y-1">
-                                 {plan.features.slice(0, 2).map(f => <p key={f} className="text-[9px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1"><div className="w-1 h-1 bg-indigo-600 rounded-full"></div> {f}</p>)}
-                              </div>
                            </div>
                          ))}
                        </div>
@@ -485,7 +477,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                     {regStep === 3 && (
                       <div className="p-8 bg-slate-950 border border-white/5 rounded-[2.5rem] space-y-6 shadow-inner text-center">
                         <h4 className="text-lg font-bold text-white uppercase tracking-tight">Persetujuan Node</h4>
-                        <p className="text-[10px] text-slate-500 italic">"Saya menyatakan bahwa seluruh data yang diinputkan adalah sah dan mematuhi pakta integritas SeuramoeTech Sumatra Regional."</p>
                         <label className="flex items-start gap-4 cursor-pointer group text-left pt-4">
                            <input type="checkbox" checked={agreedToTerms} onChange={() => setAgreedToTerms(!agreedToTerms)} className="mt-1 w-5 h-5 accent-indigo-600" />
                            <span className="text-[10px] text-slate-400 font-medium group-hover:text-white transition-colors">Saya menyetujui syarat layanan dan kebijakan privasi platform.</span>
@@ -521,11 +512,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Sandi Baru</label>
                     <input type="password" required className="w-full px-5 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
-                    <div className="flex gap-1 mt-2 px-1">
-                        {[1, 2, 3, 4].map(idx => (
-                          <div key={idx} className={`h-1 flex-1 rounded-full transition-all ${idx <= passwordStrength ? getStrengthLabel().c : 'bg-slate-800'}`}></div>
-                        ))}
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Ulangi Sandi</label>
@@ -560,11 +546,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                   <button type="button" onClick={() => setMode('login')} className="w-full text-[9px] font-black text-slate-600 uppercase hover:text-white transition-colors">Kembali ke Login</button>
                </form>
             )}
-          </div>
-
-          {/* Persistent Audit Info */}
-          <div className="text-center opacity-40">
-             <p className="text-[9px] font-black text-slate-700 uppercase tracking-[0.3em]">Node Regional Security • Aceh Sumatra Node Node-01</p>
           </div>
         </div>
       </div>
