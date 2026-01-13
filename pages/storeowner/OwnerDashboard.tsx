@@ -14,11 +14,12 @@ import ReportsAnalytics from './ReportsAnalytics';
 import StoreSettings from './StoreSettings';
 import OwnerSecurity from './OwnerSecurity';
 import OwnerIntelligence from './OwnerIntelligence';
+import NotificationHub from '../../components/Shared/NotificationHub';
 import { ICONS } from '../../constants';
 import AuthService from '../../auth/AuthService';
 
 interface OwnerDashboardProps {
-  activeTab: 'overview' | 'staff' | 'inventory' | 'tickets' | 'financials' | 'settings' | 'promo' | 'marketing' | 'orders' | 'feedback' | 'billing' | 'reports' | 'security' | 'smart';
+  activeTab: 'overview' | 'staff' | 'inventory' | 'tickets' | 'financials' | 'settings' | 'promo' | 'marketing' | 'orders' | 'feedback' | 'billing' | 'reports' | 'security' | 'smart' | 'notifications';
   onTabChange: (tab: any) => void;
 }
 
@@ -39,7 +40,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
         </div>
         
         <div className="glass-panel p-1 rounded-2xl flex flex-wrap gap-1 shadow-2xl border-slate-800 overflow-x-auto max-w-full">
-          {(['overview', 'smart', 'reports', 'billing', 'financials', 'orders', 'inventory', 'tickets', 'feedback', 'promo', 'marketing', 'staff', 'settings', 'security'] as const).map(tab => (
+          {(['overview', 'smart', 'reports', 'billing', 'financials', 'orders', 'inventory', 'tickets', 'feedback', 'promo', 'marketing', 'staff', 'settings', 'security', 'notifications'] as const).map(tab => (
             <button 
               key={tab}
               onClick={() => onTabChange(tab)}
@@ -57,6 +58,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
                tab === 'billing' ? 'Tagihan SaaS' : 
                tab === 'reports' ? 'Laporan' : 
                tab === 'security' ? 'Keamanan' : 
+               tab === 'notifications' ? 'Notif' :
                tab === 'smart' ? '🧠 Hub Pintar' : tab}
             </button>
           ))}
@@ -77,6 +79,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ activeTab, onTabChange 
       {activeTab === 'settings' && <StoreSettings />}
       {activeTab === 'security' && <OwnerSecurity />}
       {activeTab === 'smart' && <OwnerIntelligence />}
+      {activeTab === 'notifications' && <NotificationHub onNavigate={onTabChange} />}
       
       {/* Footer Status for Owner */}
       <div className="p-6 bg-indigo-600/10 border border-indigo-500/20 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">

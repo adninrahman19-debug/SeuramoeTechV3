@@ -1,10 +1,13 @@
+
 import AuthService from '../auth/AuthService';
 
 export enum NotificationType {
   ORDER = 'ORDER',
   SERVICE = 'SERVICE',
   PROMO = 'PROMO',
-  MESSAGE = 'MESSAGE'
+  MESSAGE = 'MESSAGE',
+  SYSTEM = 'SYSTEM',
+  SECURITY = 'SECURITY'
 }
 
 export interface AppNotification {
@@ -25,39 +28,82 @@ class NotificationService {
     const user = AuthService.getCurrentUser();
     if (!user) return;
 
-    if (!localStorage.getItem(this.STORAGE_KEY)) {
-      const initial: AppNotification[] = [
-        {
-          id: 'n-1',
+    const existing = localStorage.getItem(this.STORAGE_KEY);
+    if (!existing) {
+      const initial: AppNotification[] = [];
+      
+      // Default welcome for all
+      initial.push({
+        id: 'n-welcome',
+        userId: user.id,
+        type: NotificationType.SYSTEM,
+        title: 'Selamat Datang di SeuramoeTech',
+        message: `Halo ${user.fullName}, akun Anda telah terverifikasi di Node Regional Sumatra.`,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+
+      // Role specific mocks
+      if (user.role === 'SUPER_ADMIN') {
+        initial.push({
+          id: 'n-sa-1',
+          userId: user.id,
+          type: NotificationType.SECURITY,
+          title: 'Audit Keamanan Mingguan',
+          message: 'Laporan audit keamanan Node Sumatra-North-01 siap untuk ditinjau.',
+          isRead: false,
+          link: 'security',
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        });
+      }
+
+      if (user.role === 'STORE_OWNER') {
+        initial.push({
+          id: 'n-so-1',
           userId: user.id,
           type: NotificationType.ORDER,
-          title: 'Pesanan Dikirim',
-          message: 'Unit Logitech G502 Anda sedang dalam perjalanan via J&T Express.',
+          title: 'Order Baru Masuk',
+          message: 'Pesanan ORD-99211 menunggu verifikasi pembayaran manual.',
           isRead: false,
           link: 'orders',
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: 'n-2',
+          createdAt: new Date(Date.now() - 1800000).toISOString()
+        });
+      }
+
+      // Customer specific mocks
+      if (user.role === 'CUSTOMER') {
+        initial.push({
+          id: 'n-cust-1',
           userId: user.id,
           type: NotificationType.SERVICE,
-          title: 'Pembaruan Servis',
-          message: 'Teknisi telah mulai mengerjakan MacBook Air Anda. Estimasi selesai: Besok.',
-          isRead: true,
+          title: 'Unit Servis Siap Diambil!',
+          message: 'Perbaikan MacBook Air M1 Anda di Node Aceh Tech telah selesai. Silakan cek detail biaya.',
+          isRead: false,
           link: 'repairs',
-          createdAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: 'n-3',
+          createdAt: new Date(Date.now() - 7200000).toISOString()
+        });
+        initial.push({
+          id: 'n-cust-2',
           userId: user.id,
           type: NotificationType.PROMO,
-          title: 'Voucher Baru Tersedia!',
-          message: 'Gunakan kode ACEHTECH20 untuk diskon 20% servis bulan ini.',
+          title: 'Voucher Loyalty Aktif',
+          message: 'Selamat! Anda mendapatkan voucher potongan 10% untuk kategori aksesoris.',
           isRead: false,
           link: 'promo',
+          createdAt: new Date(Date.now() - 86400000).toISOString()
+        });
+        initial.push({
+          id: 'n-cust-3',
+          userId: user.id,
+          type: NotificationType.SECURITY,
+          title: 'Login Perangkat Baru',
+          message: 'Akun Anda baru saja diakses melalui Chrome di Medan, ID. Jika ini bukan Anda, segera amankan akun.',
+          isRead: true,
+          link: 'profile',
           createdAt: new Date(Date.now() - 172800000).toISOString()
-        }
-      ];
+        });
+      }
+
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(initial));
     }
   }
