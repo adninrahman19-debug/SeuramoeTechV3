@@ -1,5 +1,5 @@
 
-import { User, UserRole, AuditLog, AuditCategory } from '../types';
+import { User, UserRole, AuditCategory } from '../types';
 import AuthService from '../auth/AuthService';
 import SecurityService from './SecurityService';
 
@@ -45,7 +45,7 @@ class StaffService {
       role: data.role
     });
 
-    // Update storeId which register doesn't handle in basic form
+    // Perbarui data tambahan (storeId)
     const db = AuthService.getAllUsers();
     const updated = db.map(u => u.id === newUser.id ? { ...u, storeId: data.storeId, status: 'active' as const } : u);
     localStorage.setItem('st_users_database', JSON.stringify(updated));
@@ -53,14 +53,34 @@ class StaffService {
     SecurityService.addLog({
       userId: ownerId,
       userName: 'Store Owner',
-      action: 'Staff Recruitment',
+      action: 'STAFF_RECRUITMENT',
       category: AuditCategory.PERMISSION,
-      details: `Created new ${data.role} account: ${data.username}`,
+      details: `Menambah staf baru: ${data.fullName} (${data.role})`,
       ip: '127.0.0.1',
       severity: 'INFO'
     });
 
     return newUser;
+  }
+
+  // Add comment: Fix missing resetStaffPassword method
+  static resetStaffPassword(ownerId: string, staffId: string): string {
+    const newPass = Math.random().toString(36).substr(2, 8);
+    const db = AuthService.getAllUsers();
+    const updated = db.map(u => u.id === staffId ? { ...u, requiresPasswordChange: true } : u);
+    localStorage.setItem('st_users_database', JSON.stringify(updated));
+
+    SecurityService.addLog({
+      userId: ownerId,
+      userName: 'Store Owner',
+      action: 'STAFF_PASSWORD_RESET',
+      category: AuditCategory.SECURITY,
+      details: `Memaksa reset password untuk staf ID: ${staffId}`,
+      ip: '127.0.0.1',
+      severity: 'WARN'
+    });
+
+    return newPass;
   }
 
   static updateStaffMember(ownerId: string, userId: string, updates: Partial<User>) {
@@ -71,9 +91,9 @@ class StaffService {
     SecurityService.addLog({
       userId: ownerId,
       userName: 'Store Owner',
-      action: 'Staff Profile Updated',
+      action: 'STAFF_UPDATE',
       category: AuditCategory.PERMISSION,
-      details: `Modified access/profile for UID: ${userId}`,
+      details: `Memperbarui profil staf ID: ${userId}`,
       ip: '127.0.0.1',
       severity: 'INFO'
     });
@@ -84,26 +104,12 @@ class StaffService {
     SecurityService.addLog({
       userId: ownerId,
       userName: 'Store Owner',
-      action: 'Staff Termination',
+      action: 'STAFF_TERMINATION',
       category: AuditCategory.PERMISSION,
-      details: `Removed staff account UID: ${userId}`,
+      details: `Menghapus akses staf ID: ${userId}`,
       ip: '127.0.0.1',
       severity: 'WARN'
     });
-  }
-
-  static resetStaffPassword(ownerId: string, userId: string) {
-    // In demo, we just log the action. In real app, we'd update credential DB.
-    SecurityService.addLog({
-      userId: ownerId,
-      userName: 'Store Owner',
-      action: 'Staff Password Reset',
-      category: AuditCategory.SECURITY,
-      details: `Forced credential reset for staff UID: ${userId}`,
-      ip: '127.0.0.1',
-      severity: 'WARN'
-    });
-    return "NewP@ss2024!";
   }
 }
 

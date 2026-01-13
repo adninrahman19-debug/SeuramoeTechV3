@@ -50,13 +50,14 @@ class StoreService {
     const stores = this.getAllStores();
     const newStore: Store = {
       ...store,
-      id: 's' + (stores.length + 1),
+      id: 's' + Math.random().toString(36).substr(2, 5),
       createdAt: new Date().toISOString(),
       violationCount: 0,
       totalSales: 0
     };
     const updated = [...stores, newStore];
     localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('stores-updated'));
     return newStore;
   }
 
@@ -64,12 +65,14 @@ class StoreService {
     const stores = this.getAllStores();
     const updated = stores.map(s => s.id === id ? { ...s, ...updates } : s);
     localStorage.setItem(this.STORES_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('stores-updated'));
   }
 
   static deleteStore(id: string) {
     const stores = this.getAllStores();
     const filtered = stores.filter(s => s.id !== id);
     localStorage.setItem(this.STORES_KEY, JSON.stringify(filtered));
+    window.dispatchEvent(new Event('stores-updated'));
   }
 
   static updateStoreStatus(storeId: string, status: 'active' | 'suspended') {

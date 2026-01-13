@@ -43,7 +43,7 @@ const App: React.FC = () => {
   // Jika tidak login
   if (!user) {
     if (view === 'auth') {
-      return <Login onLoginSuccess={handleLoginSuccess} />;
+      return <Login onLoginSuccess={handleLoginSuccess} onBack={() => setView('landing')} />;
     }
     if (view === 'marketplace') {
       return <GuestMarketplace 

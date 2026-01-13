@@ -2,7 +2,7 @@
 import { Product, ProductStatus, StockHistory } from '../types';
 
 class InventoryService {
-  private static STORAGE_KEY = 'st_owner_inventory';
+  private static STORAGE_KEY = 'st_global_inventory';
   private static HISTORY_KEY = 'st_stock_history';
 
   private static init() {
@@ -23,14 +23,6 @@ class InventoryService {
           images: ['https://images.unsplash.com/photo-1611186871348-b1ec696e5238?q=80&w=200'],
           description: 'Apple Silicon powered portability.', isSponsored: false,
           sku: 'LAP-APPLE-MBA-M2', barcode: '880987654321', stock: 2, lowStockThreshold: 5
-        },
-        {
-          id: 'p-103', storeId: 's1', storeName: 'Aceh Tech Center',
-          name: 'Logitech G502 Hero', price: 850000, promoPrice: 799000, category: 'Accessories',
-          status: ProductStatus.ACTIVE, thumbnail: 'https://images.unsplash.com/photo-1527814050087-3793815479db?q=80&w=200',
-          images: ['https://images.unsplash.com/photo-1527814050087-3793815479db?q=80&w=200'],
-          description: 'High performance wired gaming mouse.', isSponsored: false,
-          sku: 'ACC-LOGI-G502', barcode: '880555666777', stock: 25, lowStockThreshold: 10
         }
       ];
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(initialProducts));
@@ -40,34 +32,46 @@ class InventoryService {
     }
   }
 
-  static getProducts(storeId: string): Product[] {
+  static getAllGlobalProducts(): Product[] {
     this.init();
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-    return all.filter((p: Product) => p.storeId === storeId);
+    return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
   }
 
-  static getStockHistory(storeId: string): StockHistory[] {
-    this.init();
-    const all = JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
-    // In a real app we'd link history entries to products and filter by storeId via the product link
-    return all;
+  static getProducts(storeId: string): Product[] {
+    return this.getAllGlobalProducts().filter((p: Product) => p.storeId === storeId);
   }
 
   static addProduct(product: Omit<Product, 'id'>) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-    const newProduct = { ...product, id: 'p-' + Math.random().toString(36).substr(2, 5) };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify([...all, newProduct]));
+    const all = this.getAllGlobalProducts();
+    const newProduct = { ...product, id: 'p-' + Math.random().toString(36).substr(2, 7) };
+    const updated = [...all, newProduct];
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('inventory-updated'));
     return newProduct;
   }
 
   static updateProduct(id: string, updates: Partial<Product>) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    const all = this.getAllGlobalProducts();
     const updated = all.map((p: Product) => p.id === id ? { ...p, ...updates } : p);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('inventory-updated'));
+  }
+
+  static deleteProduct(id: string) {
+    const all = this.getAllGlobalProducts();
+    const updated = all.filter((p: Product) => p.id !== id);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('inventory-updated'));
+  }
+
+  static getStockHistory(storeId: string): StockHistory[] {
+    const all = JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
+    // In a real app we'd filter by storeId
+    return all;
   }
 
   static adjustStock(productId: string, amount: number, reason: string, user: string) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+    const all = this.getAllGlobalProducts();
     const history = JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
     
     const product = all.find((p: Product) => p.id === productId);
@@ -88,11 +92,7 @@ class InventoryService {
 
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(all));
     localStorage.setItem(this.HISTORY_KEY, JSON.stringify([newEvent, ...history]));
-  }
-
-  static deleteProduct(id: string) {
-    const all = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(all.filter((p: Product) => p.id !== id)));
+    window.dispatchEvent(new Event('inventory-updated'));
   }
 }
 

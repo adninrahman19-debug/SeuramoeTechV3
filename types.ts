@@ -557,6 +557,9 @@ export interface User {
   paymentMethods?: PaymentMethod[];
   privacySettings?: PrivacySettings;
   requiresPasswordChange?: boolean;
+  isEmailVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
 }
 
 export interface SubscriptionPlan {

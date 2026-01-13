@@ -35,9 +35,20 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onEnterAuth, onEnterMarketplace }) => {
   const [activeRegion, setActiveRegion] = useState('Semua');
   const [previewTab, setPreviewTab] = useState<'owner' | 'staff' | 'customer'>('owner');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToSection = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
+    setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 80;
@@ -50,6 +61,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterAuth, onEnterMarketpla
       });
     }
   };
+
+  const navLinks = [
+    { name: 'Beranda', id: 'home' },
+    { name: 'Solusi', id: 'solutions' },
+    { name: 'Fitur', id: 'features' },
+    { name: 'Marketplace', id: 'marketplace-preview' },
+    { name: 'Dashboard', id: 'preview' },
+    { name: 'Harga', id: 'pricing' }
+  ];
 
   const ecosystemFeatures = [
     {
@@ -102,19 +122,92 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterAuth, onEnterMarketpla
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 selection:bg-indigo-500/30">
-      <header className="fixed top-0 left-0 right-0 z-[100] border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Logo size="md" />
-          <nav className="hidden lg:flex items-center gap-10">
-            {[{ name: 'Beranda', id: 'home' }, { name: 'Solusi Kami', id: 'solutions' }, { name: 'Fitur Unggulan', id: 'features' }, { name: 'Marketplace', id: 'marketplace-preview' }, { name: 'Dashboard', id: 'preview' }, { name: 'Harga Paket', id: 'pricing' }].map((item) => (
-              <a key={item.id} href={`#${item.id}`} onClick={(e) => scrollToSection(e, item.id)} className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-all duration-300">
+      {/* Modern Professional Navbar */}
+      <header 
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+          scrolled 
+          ? 'py-4 bg-[#020617]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl' 
+          : 'py-6 bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <Logo size="md" className="transition-transform duration-300 hover:scale-105" />
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {navLinks.map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`} 
+                onClick={(e) => scrollToSection(e, item.id)} 
+                className="group relative px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors duration-300"
+              >
                 {item.name}
+                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-indigo-500 transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-4">
-            <button onClick={onEnterAuth} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all">Masuk</button>
-            <button onClick={onEnterAuth} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-600/20 transition-all">Daftar Sekarang</button>
+
+          {/* Desktop CTA */}
+          <div className="hidden lg:flex items-center gap-6">
+            <button 
+              onClick={onEnterAuth} 
+              className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-white transition-all duration-300 px-4"
+            >
+              Masuk
+            </button>
+            <button 
+              onClick={onEnterAuth} 
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-600/20 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+            >
+              Daftar Sekarang
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
+          >
+            {isMobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile menu dropdown */}
+        <div 
+          className={`lg:hidden absolute top-full left-0 right-0 bg-[#020617]/95 backdrop-blur-2xl border-b border-white/10 transition-all duration-500 overflow-hidden ${
+            isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="p-6 space-y-4">
+            {navLinks.map((item) => (
+              <a 
+                key={item.id} 
+                href={`#${item.id}`} 
+                onClick={(e) => scrollToSection(e, item.id)} 
+                className="block py-4 border-b border-white/5 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-indigo-400"
+              >
+                {item.name}
+              </a>
+            ))}
+            <div className="pt-6 grid grid-cols-2 gap-4">
+              <button 
+                onClick={onEnterAuth} 
+                className="py-4 text-xs font-black uppercase tracking-widest text-slate-400 border border-white/10 rounded-2xl"
+              >
+                Masuk
+              </button>
+              <button 
+                onClick={onEnterAuth} 
+                className="py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-lg"
+              >
+                Daftar
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -407,12 +500,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterAuth, onEnterMarketpla
             </div>
 
             <div className="bg-[#020617] rounded-b-[3rem] overflow-hidden border-t border-white/5 min-h-[550px] p-8 md:p-12 relative animate-in fade-in duration-700">
-               {/* Previews are translated visually in their respective blocks */}
                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent flex items-center justify-center pt-20">
                   <button onClick={onEnterAuth} className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl shadow-2xl shadow-indigo-600/40 transition-all border border-indigo-500/30">Akses Demo Interaktif Sekarang</button>
                </div>
                
-               {/* Simplified mock content for translation view */}
                <div className="text-center py-20">
                   <p className="text-slate-500 font-bold uppercase tracking-widest">Memuat Tampilan Dashboard {previewTab.toUpperCase()}...</p>
                </div>
@@ -451,7 +542,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterAuth, onEnterMarketpla
       <section id="pricing" className="py-32 px-6">
         <div className="max-w-7xl mx-auto text-center mb-20 space-y-4">
            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">Solusi Penyekalaan Bisnis</p>
-           <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">Pilih Paket <br /><span className="text-indigo-500">Kekuatan Bisnis Anda</span></h2>
+           <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none">Pilih Paket <br /><span className="text-indigo-500">Kekuatan Bisnis Anda</span></h2>
         </div>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
            {SUBSCRIPTION_PLANS.map((plan) => (

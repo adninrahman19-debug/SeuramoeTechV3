@@ -15,12 +15,14 @@ class AuthService {
         ...u,
         status: u.status || 'active',
         lastLogin: new Date().toISOString(),
-        lastIp: '182.1.22.4' + Math.floor(Math.random() * 9),
-        device: 'Windows Desktop',
-        performanceScore: u.role === UserRole.STORE_OWNER ? 88 : undefined,
-        accountManager: u.role === UserRole.STORE_OWNER ? 'Rahmat Hidayat' : undefined,
+        lastIp: '182.1.22.4',
+        device: 'Desktop Web Terminal',
         createdAt: new Date().toISOString(),
-        requiresPasswordChange: [UserRole.STAFF_ADMIN, UserRole.TECHNICIAN, UserRole.MARKETING].includes(u.role)
+        // Staf tetap perlu ganti password, tapi email verified diset true agar tidak kena OTP awal
+        requiresPasswordChange: [UserRole.STAFF_ADMIN, UserRole.TECHNICIAN, UserRole.MARKETING].includes(u.role),
+        isEmailVerified: true,
+        // Nonaktifkan 2FA default untuk kemudahan login demo
+        twoFactorEnabled: false 
       }));
       localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(initialUsers));
     }
@@ -29,6 +31,31 @@ class AuthService {
   static getAllUsers(): User[] {
     this.initDB();
     return JSON.parse(localStorage.getItem(this.USERS_DB_KEY) || '[]');
+  }
+
+  static checkIpRestriction(ip: string, user: User): { allowed: boolean; reason?: string } {
+    if (user.role === UserRole.SUPER_ADMIN && ip !== '182.1.22.4') {
+      return { allowed: false, reason: "Akses Super Admin hanya diizinkan dari Node HQ resmi (182.1.22.4)." };
+    }
+    return { allowed: true };
+  }
+
+  static sendOTP(email: string): string {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`[SECURITY] OTP generated for ${email}: ${otp}`);
+    return otp;
+  }
+
+  static verifyEmail(userId: string): User | null {
+    const db = this.getAllUsers();
+    const idx = db.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      db[idx].isEmailVerified = true;
+      localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(db));
+      localStorage.setItem(this.AUTH_KEY, JSON.stringify(db[idx]));
+      return db[idx];
+    }
+    return null;
   }
 
   static login(username: string, password: string): User | null {
@@ -44,83 +71,109 @@ class AuthService {
       'customer001': 'Customer@123',
     };
 
-    // Simulasi pengecekan password di database (real app uses hashing)
     const isValid = credentialsMap[username] === password || (username.startsWith('new_') && password === 'Pass@123');
 
     if (isValid) {
       const user = db.find(u => u.username === username || u.email === username);
       if (user) {
-        if (user.status === 'suspended') return null;
-        
-        user.lastLogin = new Date().toISOString();
-        const updatedDB = db.map(u => u.id === user.id ? user : u);
-        localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updatedDB));
-        
-        // Simpan sesi jika TIDAK perlu ganti password
-        if (!user.requiresPasswordChange) {
+        if (user.status === 'suspended' || user.status === 'banned') return null;
+        // Jika tidak butuh verifikasi tambahan, langsung simpan session
+        if (!user.requiresPasswordChange && user.isEmailVerified && !user.twoFactorEnabled) {
            localStorage.setItem(this.AUTH_KEY, JSON.stringify(user));
         }
-        
         return user;
       }
     }
     return null;
   }
 
+  static finalizeLogin(user: User) {
+    user.lastLogin = new Date().toISOString();
+    const db = this.getAllUsers();
+    const updatedDB = db.map(u => u.id === user.id ? user : u);
+    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updatedDB));
+    localStorage.setItem(this.AUTH_KEY, JSON.stringify(user));
+  }
+
+  static updateUserData(id: string, updates: Partial<User>) {
+    const db = this.getAllUsers();
+    const updated = db.map(u => u.id === id ? { ...u, ...updates } : u);
+    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updated));
+    
+    const current = this.getCurrentUser();
+    if (current && current.id === id) {
+      localStorage.setItem(this.AUTH_KEY, JSON.stringify({ ...current, ...updates }));
+    }
+    window.dispatchEvent(new Event('auth-updated'));
+  }
+
   static changePassword(userId: string, newPassword: string): boolean {
     const db = this.getAllUsers();
-    const userIdx = db.findIndex(u => u.id === userId);
-    if (userIdx !== -1) {
-      db[userIdx].requiresPasswordChange = false;
-      // In real app, we would hash and save the new password
+    const idx = db.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      db[idx].requiresPasswordChange = false;
       localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(db));
-      localStorage.setItem(this.AUTH_KEY, JSON.stringify(db[userIdx]));
+      localStorage.setItem(this.AUTH_KEY, JSON.stringify(db[idx]));
       return true;
     }
     return false;
   }
 
-  static sendOTP(identifier: string): boolean {
-    const db = this.getAllUsers();
-    const user = db.find(u => u.username === identifier || u.email === identifier || u.phone === identifier);
-    if (!user) return false;
-    console.log(`[SeuramoeAuth] Kode OTP 882142 terkirim ke target node.`);
-    return true;
+  static logout() {
+    localStorage.removeItem(this.AUTH_KEY);
+    localStorage.removeItem(this.ORIGINAL_USER_KEY);
   }
 
-  static verifyOTP(identifier: string, code: string): User | null {
-    if (code === '882142') {
-      const db = this.getAllUsers();
-      const user = db.find(u => u.username === identifier || u.email === identifier || u.phone === identifier);
-      if (user) {
-        localStorage.setItem(this.AUTH_KEY, JSON.stringify(user));
-        return user;
-      }
+  static getCurrentUser(): User | null {
+    const data = localStorage.getItem(this.AUTH_KEY);
+    return data ? JSON.parse(data) : null;
+  }
+
+  static register(data: { fullName: string; username: string; email: string; role: UserRole }): User {
+    this.initDB();
+    const db = this.getAllUsers();
+    const newUser: User = {
+      id: 'u' + Math.random().toString(36).substr(2, 9),
+      ...data,
+      status: 'pending',
+      isSubscriptionActive: false,
+      createdAt: new Date().toISOString(),
+      requiresPasswordChange: false,
+      isEmailVerified: false,
+      twoFactorEnabled: false
+    };
+    db.push(newUser);
+    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(db));
+    window.dispatchEvent(new Event('users-updated'));
+    return newUser;
+  }
+
+  static deleteUser(userId: string) {
+    const db = this.getAllUsers();
+    const updated = db.filter(u => u.id !== userId);
+    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('users-updated'));
+  }
+
+  static updateUserStatus(userId: string, status: 'active' | 'suspended' | 'pending') {
+    this.updateUserData(userId, { status });
+  }
+
+  static assignAccountManager(userId: string, managerName: string) {
+    this.updateUserData(userId, { accountManager: managerName });
+  }
+
+  static updateSubscription(tier: any) {
+    const user = this.getCurrentUser();
+    if (user && user.role === UserRole.STORE_OWNER) {
+      this.updateUserData(user.id, {
+        subscriptionTier: tier,
+        isSubscriptionActive: true,
+        status: 'active'
+      });
+      return this.getCurrentUser();
     }
     return null;
-  }
-
-  static forgotPassword(email: string): boolean {
-    const db = this.getAllUsers();
-    const user = db.find(u => u.email === email);
-    if (!user) return false;
-    console.log(`[SeuramoeAuth] Instruksi pemulihan dikirim ke ${email}`);
-    return true;
-  }
-
-  static forceLogoutAllDevices(userId: string) {
-    const key = 'st_user_sessions_' + userId;
-    localStorage.removeItem(key);
-    
-    SecurityService.addLog({
-      userId,
-      userName: 'Sistem Keamanan',
-      action: 'GLOBAL_FORCE_LOGOUT',
-      category: AuditCategory.SECURITY,
-      details: 'User memutus seluruh sesi aktif dari semua perangkat.',
-      ip: '127.0.0.1',
-      severity: 'CRITICAL'
-    });
   }
 
   static impersonate(userId: string) {
@@ -146,74 +199,6 @@ class AuthService {
 
   static isImpersonating(): boolean {
     return !!localStorage.getItem(this.ORIGINAL_USER_KEY);
-  }
-
-  static assignAccountManager(userId: string, managerName: string) {
-    const db = this.getAllUsers();
-    const updated = db.map(u => u.id === userId ? { ...u, accountManager: managerName } : u);
-    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updated));
-  }
-
-  static updateUserStatus(userId: string, status: 'active' | 'suspended' | 'pending') {
-    const db = this.getAllUsers();
-    const updated = db.map(u => u.id === userId ? { ...u, status } : u);
-    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updated));
-  }
-
-  static deleteUser(userId: string) {
-    const db = this.getAllUsers();
-    const filtered = db.filter(u => u.id !== userId);
-    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(filtered));
-  }
-
-  static logout() {
-    localStorage.removeItem(this.AUTH_KEY);
-    localStorage.removeItem(this.ORIGINAL_USER_KEY);
-  }
-
-  static getCurrentUser(): User | null {
-    const data = localStorage.getItem(this.AUTH_KEY);
-    return data ? JSON.parse(data) : null;
-  }
-
-  static updateSubscription(tier: any) {
-    const user = this.getCurrentUser();
-    if (user && user.role === UserRole.STORE_OWNER) {
-      user.subscriptionTier = tier;
-      user.isSubscriptionActive = true;
-      user.status = 'active';
-      const db = this.getAllUsers();
-      const updatedDB = db.map(u => u.id === user.id ? user : u);
-      localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(updatedDB));
-      localStorage.setItem(this.AUTH_KEY, JSON.stringify(user));
-      return user;
-    }
-    return null;
-  }
-
-  static register(data: { fullName: string; username: string; email: string; role: UserRole }): User {
-    this.initDB();
-    const db = this.getAllUsers();
-    
-    // Protokol khusus untuk staf yang dibuat Owner
-    const isStaff = [UserRole.STAFF_ADMIN, UserRole.TECHNICIAN, UserRole.MARKETING].includes(data.role);
-
-    const newUser: User = {
-      id: 'u' + Math.random().toString(36).substr(2, 9),
-      ...data,
-      status: data.role === UserRole.STORE_OWNER ? 'pending' : 'active',
-      isSubscriptionActive: false,
-      createdAt: new Date().toISOString(),
-      requiresPasswordChange: isStaff // Staf wajib ganti password di login pertama
-    };
-    db.push(newUser);
-    localStorage.setItem(this.USERS_DB_KEY, JSON.stringify(db));
-    
-    if (isStaff) {
-      console.log(`[SeuramoeTech] Email instruksi kredensial dikirim ke ${data.email}`);
-    }
-
-    return newUser;
   }
 }
 
